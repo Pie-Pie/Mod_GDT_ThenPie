@@ -1,0 +1,42 @@
+I present to you... Super Consoles!                                               By: Haxor (Haxor1337), with help of DzjengisKhan
+
+SuperConsoles adds Basic things like Platforms, Engine parts and simple Game Announcing.
+
+
+
+How to install:
+
+	
+  
+First of all you need to have the beta version of Game Dev Tycoon on steam. 
+	
+To do so:
+        -Go to your Steam library
+        -Right-click on Game Dev Tycoon
+        -Select properties
+        -Go to the 'BETA's' tab
+        -Select 'Beta - beta' from the list
+
+		
+		
+	
+	
+   
+ Now you have to go to you steamapps folder  (STEAM INSTALL PATH) /steamapps/common/Game Dev Tycoon/mods
+
+    
+Paste the SuperConsoles folder in the mods folder
+
+Now startup the game and open the main menu.
+	
+In the main menu open up the mods screen.
+	
+Select SuperConsoles mod and restart Game Dev Tycoon.
+	
+
+Enjoy!
+
+Version 0.9.7
+
+Check out NexusMods's page and GHG Forums. You can also find SuperConsoles wiki.
+Post on SuperConsoles's topic on GHG Forums or on NexusMods.

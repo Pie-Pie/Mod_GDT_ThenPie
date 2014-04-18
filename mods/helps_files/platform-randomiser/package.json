@@ -1,0 +1,12 @@
+{
+	"id": "platform-randomiser",
+	"name": "Platform Randomiser",
+	"version": "0.0.4",
+	"author": "gdt@tonyfinn.com",
+	"url": "http://bitbucket.org/tonyfinn/gdt-randomiser",
+	"description": "Randomises the success or failure of platforms within GDT",
+	"main": "./randomiser.js",
+	"dependencies": {
+		"gdt-modAPI": "0.1.x"
+	}
+}

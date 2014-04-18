@@ -1,0 +1,120 @@
+		 
+		 var Id2 = "HaxorIsTheBestAndSuperConsolest001";
+
+	var Event2 = {
+	id: Id2,
+	isRandom: false,
+	maxTriggers: 1,
+	date: "24/11/4",
+	ignoreGameLengthModifier: false,
+	getNotification: function (company) {
+		
+		var msg = "Coden And Grapple Are In Hard Situation. Grapple Sued Coden, Because They Were Copying Their Phones. All CFons Are Very Similar To grPhones. {n} Now, They Sent Us The Messages, They Want Us To Help Them. We Can Choose Grapple or Coden side."
+		return new Notification({
+		sourceId: Id2,
+		header: "Hard Situation",
+		text: msg,
+		options: ["Help Grapple", "Help Coden", "Forget About Those Messages"]
+		});
+		},
+		
+		complete: function (decision) {
+		
+		if (decision === 0) {  //Grapple
+		var n = new Notification({
+		header: "Thank You!",
+		text: "Thanks for your respect. Now, we will win for sure. Again Thanks. {n} We knew It! We Have won! Those stupid guys from Coden, they should go to jail. CFons are repliques of grPhones! Once again, again Thank You.",
+		});
+		n.adjustCash(-65000, "Court");
+		n.adjustHype(4 + 10 * GameManager.company.getRandom());
+		 GameManager.company.notifications.push(n);
+		 return;
+		}
+		
+		if (decision === 1) { //Coden
+		var n = new Notification({
+		header: "Thanks",
+		text: "Wow, We didn't expect that, that so big company could help us, because we are smaller company than Grrrapple. Hope That we will win with Grapple now! It will be hard, because they have good lawyers. {n} We have lost. CFons arent just copied grPhones. They were inspired by their succes, but that is something different. Anyway, big thanks for being with us.",
+		weeksUntilFired: 1,
+		});
+		n.adjustCash(-101000, "Court");
+		n.adjustHype(12 + 20 * GameManager.company.getRandom());
+		 GameManager.company.notifications.push(n);
+		 return;
+		 }
+		 
+		 if (decision === 2) { 
+		var n = new Notification({
+		header: "Grapple",
+		text: "You Did Wrong. Those Stupid CFons Are Just grPhones With Very Stupid Names! Thankfully We Have Won Without Your Help.{n} We Did not recieved any message from Coden. They Have lost, just like everyone knew. {n} I Think they will stop developing CFons/CTaps.",
+		weeksUntilFired: 1,
+		});
+		n.adjustFans(2 + 8 * GameManager.company.getRandom());
+		 GameManager.company.notifications.push(n);
+		 return;
+		 }
+		 
+		 }
+		 };
+		 
+		 GDT.addEvent(Event2);
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+		//Announce
+var hype;
+var cost;
+var fans;
+var shMenu = UI._showContextMenu;
+var shMyMenu = function(type, menuItems, x, y) {
+
+		game = GameManager.company.currentGame;
+			if (GameManager.company.isCurrentlyDevelopingGame()) {
+		menuItems.push({
+			label: "Announce {0}".localize().format(GameManager.company.currentGame.title),
+			action: function() {
+		if (GameManager.company.isCurrentlyDevelopingGame() && game.gameSize == "small") {
+			hype = GameManager.company.adjustHype(12 + 18 * GameManager.company.getRandom());
+			cost = GameManager.company.adjustCash(-30000, "Game Announcement");	
+			fans = GameManager.company.adjustFans(2 + 8 *  GameManager.company.getRandom());
+		} else if (GameManager.company.isCurrentlyDevelopingGame() && game.gameSize == "medium") {
+			hype = GameManager.company.adjustHype(22 + 28 * GameManager.company.getRandom());
+			cost = GameManager.company.adjustCash(-85000, "Medium Game Announcement");	
+			fans = GameManager.company.adjustFans(5 + 12 *  GameManager.company.getRandom());
+		} else if (GameManager.company.isCurrentlyDevelopingGame() && game.gameSize == "large") {
+			hype = GameManager.company.adjustHype(45 + 50 * GameManager.company.getRandom());
+			cost = GameManager.company.adjustCash(-275000, "Large Game Announcement");	
+			fans = GameManager.company.adjustFans(22 + 25 *  GameManager.company.getRandom());
+		} else if (GameManager.company.isCurrentlyDevelopingGame() && game.gameSize == "aaa") {
+			hype = GameManager.company.adjustHype(80 + 82 * GameManager.company.getRandom());
+			cost = GameManager.company.adjustCash(-1000000, "AAA Game Announcement");	
+			fans = GameManager.company.adjustFans(40 + 60 *  GameManager.company.getRandom());
+		};
+				Sound.click();
+				GameManager.resume(true);
+				GameManager.company.notifications.push(new Notification("Game Announced!", "We Have Succesfully Announced Our Upcoming Game. We Can Do It Again, Just Say More Things About Our Game, To Hype It Even More!"));
+				hype;
+				cost;
+				fans;
+			}				
+		});
+	}
+
+	shMenu(type, menuItems, x, y);
+}
+UI._showContextMenu = shMyMenu;

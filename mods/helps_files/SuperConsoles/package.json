@@ -1,0 +1,12 @@
+{
+	"id" : "SuperConsoles",
+	"name" : "Super Consoles",
+	"version" : "0.9.7",
+	"author" : "Haxor, With Help From DzjengisKhan",
+	"description" : "SuperConsoles Mod Expands GameDevTycoon With New Basic Things Like Platforms, And Simple Game Announcing.",
+	"url" : "http://www.nexusmods.com/gamedevtycoon/mods/5/?",
+	"main" : "./ConsolesScript.js",
+	"dependencies" : {
+		"gdt-modAPI":"0.1.x"
+	}
+}
