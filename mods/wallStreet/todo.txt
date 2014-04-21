@@ -1,0 +1,17 @@
+- ajout d'un bureau a l'etape 4
+	* il se trouve derriere celui de notre chef contre le mur	
+
+- ajout d'une recherche "trade" qui debloque le tradeur
+	
+
+- ajout d'une action sur le bureau pour engager un tradeur
+	* comme pour les employés avec budget tout ca
+
+- ajout des actions sur le tradeur
+	* surtout pour l'entrainement le traideur du debut est une merde
+	* cet entrainement coute de l'argent et recherche 
+
+- pouvoir mettre sa societée en bourse
+	
+
+-- la bourse en elle meme event tout ca

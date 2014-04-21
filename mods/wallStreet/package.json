@@ -1,0 +1,13 @@
+﻿{
+	"id": "wallStreet",
+	"name": "wallSteet",
+	"version": "0.1",
+	"author": "Twins43 & KeRNeLith",
+	"url": "",
+	"description": "Ad a trad council on your game!",
+	"main": "./wallStreet.js",
+	"dependencies":
+	{
+		"gdt-modAPI": "0.1.x"
+	}
+}
