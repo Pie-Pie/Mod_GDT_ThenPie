@@ -1,4 +1,6 @@
 Mod_GDT_WITH-LotOfPeople
 ===============
 
-Friends programmers who want to do some stuff for Game Dev Tycoon. :-) 
+French friends programmers who want to do some stuff for Game Dev Tycoon. :-)
+
+(3:33 21/04/14)
