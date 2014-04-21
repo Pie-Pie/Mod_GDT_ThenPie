@@ -200,7 +200,7 @@ GDT.addResearchItem(
         name: "2D V8".localize(),
         v: 14,
         canResearch: function (company) {
-            return LevelCalculator.getMissionLevel('Graphic') > 10  
+            return LevelCalculator.getMissionLevel('2D') > 10  
         },
         category: "4D",
         categoryDisplayName: "4D".localize()

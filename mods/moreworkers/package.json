@@ -4,7 +4,7 @@
 	"version": "0.1.0",
 	"author": "Thenkei & PiQuE___AC & KeRNeLith & Arnaud M.",
 	"url": "NO_URL",
-	"description": "Add some workers to your company. All your employs can have several workers in them(CORECTION her?) team.",
+	"description": "Add some workers to your company. All your employees can have several workers in their team.",
 	"main": "./moreworkers.js",
 	"dependencies":
 	{
