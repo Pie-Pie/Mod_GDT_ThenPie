@@ -1,0 +1,13 @@
+﻿{
+	"id": "makemoremoney",
+	"name": "BankLoan",
+	"version": "0.1.0",
+	"author": "Thenkei & Axel",
+	"url": "BAhahhdiedeidjed",
+	"description": "Bank loan it's your!",
+	"main": "./makemoremoney.js",
+	"dependencies":
+	{
+		"gdt-modAPI": "0.1.x"
+	}
+}
