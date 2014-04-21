@@ -1,5 +1,4 @@
-//Warning: reading this code as an experienced developer may cause you to bang your head into the wall
-//I am not responsible for you being sent to the hospital because of my mod
+// Loan bank Mod
 var Makemoremoney = {};
 
 (function () {
