@@ -2,8 +2,8 @@ var wallStreet = {};
 
 (function()
 {
-	dMultiplayer.init = function()
+	wallStreet.init = function()
 	{
-		if(
+		// DO SOMETHING
 	};
 })();

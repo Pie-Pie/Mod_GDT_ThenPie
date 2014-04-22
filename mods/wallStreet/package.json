@@ -1,10 +1,10 @@
 ﻿{
 	"id": "wallStreet",
-	"name": "wallSteet",
-	"version": "0.1",
+	"name": "Wall Street",
+	"version": "0.1.0",
 	"author": "Twins43 & KeRNeLith",
 	"url": "",
-	"description": "Ad a trad council on your game!",
+	"description": "Add the possibility to hire a trader to deal with stock exchange in the game!",
 	"main": "./wallStreet.js",
 	"dependencies":
 	{
