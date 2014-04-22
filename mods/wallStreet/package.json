@@ -5,7 +5,7 @@
 	"author": "Twins43 & KeRNeLith",
 	"url": "",
 	"description": "Add the possibility to hire a trader to deal with stock exchange in the game!",
-	"main": "./wallStreet.js",
+	"main": "./main.js",
 	"dependencies":
 	{
 		"gdt-modAPI": "0.1.x"
