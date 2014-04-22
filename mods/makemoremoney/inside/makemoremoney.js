@@ -6,11 +6,14 @@ var Makemoremoney = {};
 	var conjonctur = ["recession", "stagnation", "revival", "expansion"];
 	
 	var loanAmount;
+	var strLoanAmount;
 	var loanRate;
 	var loanWeeklyAmount;
 	var hasLoan = false;
+	
+	var store; // For saving data
 
-	Makemoremoney.computeAmount = function (result) {
+	var computeAmount = function (result) {
 
 			switch(GameManager.company.currentLevel) {
 						case 1:
@@ -33,9 +36,17 @@ var Makemoremoney = {};
 							break;
 			}
 	}
-
+	
+	var intToStr = function (a) {
+        var c;
+        1E6 <= Math.abs(a) ? c = "{0}M".format(UI.getLongNumberString(Math.roundToDecimals(a / 1E6, 1))) : 1E3 <= Math.abs(a) && (c = "{0}K".format(UI.getLongNumberString(Math.roundToDecimals(a / 1E3, 1))));
+		c || (c = Math.roundToDecimals(a, 1));
+        return c
+    }
+	
+	
 	// TODO
-	Makemoremoney.checkLoan = function (result) {
+	var checkLoan = function (result) {
 		var game = GameManager.company.gameLog.last();
 
 		
@@ -45,15 +56,36 @@ var Makemoremoney = {};
 		return true;
 	}
 	
-	Makemoremoney.rate = function (result) {
+	var rate = function (result) {
 		return 2.2;
 	}
 	
 	var weeklyLoan = function (e) {
-		GameManager.company.adjustCash(-loanWeeklyAmount, "Loan Weekly payments");
+		GameManager.company.adjustCash(-loanWeeklyAmount, "Loan payments");
+	}
+	
+	var load = function () {
+		// Chargement des données
+		loanAmount = store.data["loanAmount"];
+		strLoanAmount = store.data["strLoanAmount"];
+		loanRate = store.data["loanRate"];
+		loanWeeklyAmount = store.data["loanWeeklyAmount"];
+		hasLoan = store.data["hasLoan"];
+		// END
+	}
+	
+	var save = function() {
+		store.data["loanAmount"] = loanAmount;
+		store.data["strLoanAmount"] = strLoanAmount;
+		store.data["loanRate"] = loanRate;
+		store.data["loanWeeklyAmount"] = loanWeeklyAmount;
+		store.data["hasLoan"] = hasLoan;
 	}
 				
 	Makemoremoney.load = function () {
+		store = GDT.getDataStore("makemoremoney");
+		
+		GDT.on(GDT.eventKeys.saves.saving ,save);
 		
 		var dlocalizeVersion = 3;
 		if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dlocalizeVersion && String.prototype.dlocalizeVersion < dlocalizeVersion))
@@ -94,7 +126,7 @@ var Makemoremoney = {};
 							sourceId: "bankLoan",
 							header: "You want a bank loan".dlocalize(),
 							text: "Which amount do you want ?".dlocalize(),
-							options: ["5K".dlocalize(), "10K".dlocalize(), "25K".dlocalize()]
+							options: ["5K".dlocalize(), "10K".dlocalize(), "25K".dlocalize(), "CANCEL".dlocalize()]
 						});
 						break;
 						
@@ -103,8 +135,8 @@ var Makemoremoney = {};
 						{
 							sourceId: "bankLoan",
 							header: "You want a bank loan?".dlocalize(),
-							text: "Which amount do you want ?.".dlocalize(),
-							options: ["500K".dlocalize(), "1M".dlocalize(), "2M".dlocalize()]
+							text: "Which amount do you want ?".dlocalize(),
+							options: ["500K".dlocalize(), "1M".dlocalize(), "2M".dlocalize(), "CANCEL".dlocalize()]
 						});
 						break;
 						
@@ -115,7 +147,7 @@ var Makemoremoney = {};
 							sourceId: "bankLoan",
 							header: "You want a bank loan?".dlocalize(),
 							text: "Which amount do you want ?".dlocalize(),
-							options: ["10M".dlocalize(), "50M".dlocalize(), "100M".dlocalize()]
+							options: ["10M".dlocalize(), "50M".dlocalize(), "100M".dlocalize(), "CANCEL".dlocalize()]
 						});
 						break;
 						
@@ -124,20 +156,25 @@ var Makemoremoney = {};
 			
 			complete: function(result)
 			{
-				loanAmount = Makemoremoney.computeAmount(result);
+			
+				if(result == 3) // CANCEL case
+					return;
+				
+				loanAmount = computeAmount(result);
 				
 				var n;
 				
-				if(Makemoremoney.checkLoan(result)) {// ICI 2 NOFI ACCEPTER OU PAS
+				if(checkLoan(result)) {
 
 					// Donner le Rate
-					loanRate = Makemoremoney.rate(result);
+					loanRate = rate(result);
+					strLoanAmount = intToStr(loanAmount);
 					
 					n = new Notification(
 					{
-						header: "Allow Loan of {0}".dlocalize().format(loanAmount),
-						text: "Due to your reputation, we are pleased to allocate to you this loan. \n Rate : {0}%".dlocalize().format(loanRate),
-						weeksUntilFired: 2.2,
+						header: "Allow Loan of {0}".dlocalize().format(strLoanAmount),
+						text: "Due to your reputation, we are pleased to allocate you a {0} loan. \n  The rate is {1}%".dlocalize().format(strLoanAmount, loanRate),
+						weeksUntilFired: 2.2 * GameManager.company.getRandom(),
 						options: ["Accept".dlocalize(), "Decline the offer".dlocalize()],
 						sourceId: "bankLoanRate" //ENVOIS l'event à l'event d'id bankLoan
 					});
@@ -145,9 +182,9 @@ var Makemoremoney = {};
 				}else{
 					// Other way to write les Notifications
 					n = new Notification("Downright refusal Loan of {0}".dlocalize().format(loanAmount),
-						"We have the regret to refuse your loan.".dlocalize(),
+						"We have the regret to refuse your loan. Your situation is bad, we don't accord you. \nThe bank is still here if you increase your position. \n\nKind regards,\nMr Woody Banker".dlocalize(),
 						"Thank you in any case, Mr President.".dlocalize(),
-						1.4
+						1.4 * GameManager.company.getRandom()
 					);
 					
 				}
@@ -176,12 +213,13 @@ var Makemoremoney = {};
 					return;
 					
 				var n;
+				var nbWeek = 19 + 18 * GameManager.company.getRandom();
 				
-				loanWeeklyAmount = (loanAmount/24) * /*taxe*/(1+(loanRate/100)); // 1.022 <=> 1 + (2.2/100)
+				loanWeeklyAmount = (loanAmount/nbWeek) * /*taxe*/(1+(loanRate/100)); // 1.022 <=> 1 + (2.2/100)
 			
 				// Other way to write les Notifications
 				n = new Notification("Bank and mortgage interest rates".dlocalize(),
-					"You signed for a 27 weeks loan. You should prepare the interest payments elevated at {0} cr. each week. \n\nIf you can pay the interest you should close doors".dlocalize().format(loanWeeklyAmount),
+					"You signed for a 27 weeks loan. You should prepare the interest payments elevated at {0} each week. \n\nIf you can pay the interest you should close doors".dlocalize().format(intToStr(loanWeeklyAmount)),
 					"Agree".dlocalize(),
 					0.0
 				);
@@ -193,8 +231,8 @@ var Makemoremoney = {};
 				{
 					header: "Bank : End your loan".dlocalize().format(loanAmount),
 					text: "Your loan is paid off.".dlocalize().format(loanRate),
-					weeksUntilFired: 24 + 5 * GameManager.company.getRandom(),
-					buttonText: "Finalize".dlocalize(),
+					buttonText: "Finalize",
+					weeksUntilFired: nbWeek,
 					sourceId: "bankLoanEnd"
 				});
 				
