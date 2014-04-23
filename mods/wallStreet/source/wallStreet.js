@@ -57,8 +57,51 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 		var week = parseInt(GameManager.company.currentWeek.toString());
 
 		if (m_storedDatas.data["m_haveTrader"] && week %4 == 0)
-			GameManager.company.adjustCash(-m_storedDatas.data["m_traderSalary"], "Trader Salary".dlocalize());
+			GameManager.company.adjustCash(-m_storedDatas.data["m_traderSalary"], "Trader Salary".dlocalize(m_idMod));
 	}
+	
+	//test
+	/*wallStreet.handle = function()
+	{
+		var res = $("#resources");
+		res.append("<div id=\"advSpyDialog\" class=\"tallWindow windowBorder\"> <div class=\"windowTitle\">" + "Advanced Spying".dlocalize(m_idMod) + "</div><div id=\"advSpyCost\" class=\"windowCostLabel\">" + "Cost:".dlocalize(m_idMod) + " 500K</div><div class=\"centeredButtonWrapper\" style=\"margin-top: 20px\"><h2>" + "Budget".dlocalize(m_idMod) + "</h2><div id=\"advSpyBudgetSlider\">			</div></div>" + "<div class=\"centeredButtonWrapper\" style=\"margin-top: 20px\"><h2>" + "Select target".dlocalize(m_idMod) + "</h2><div id=\"advSpyTargets\" style=\"height: 280px; overflow-y: auto; margin: 5px 20px 0px 20px;\"></div></div><br />" + "<div class=\"centeredButtonWrapper okButtonWrapper\"><div id=\"advSpyButton\" class=\"okButton baseButton windowMainActionButton disabledButton windowLargeOkButton\">" + "Spy".dlocalize(m_idMod) + "</div></div></div>");
+		
+		
+		$("#advSpyBudgetSlider").empty();
+		$("#advSpyBudgetSlider").append($("<div class=\"budgetSlider\"></div>").slider(
+		{
+			orientation: "vertical",
+			min: 0,
+			max: 10,
+			value: 2,
+			animate: "fast",
+			slide: function(event, ui)
+			{
+				//alert($("#advSpyBudgetSlider").slider("value"));
+			}
+		}));
+	
+	$("#advSpyDialog").dialog(
+			{
+				draggable: false,
+				modal: true,
+				resizable: false,
+				show: "fade",
+				zIndex: 7000,
+				title: "Attention",
+				open: function()
+				{
+					
+				},
+				close: function()
+				{
+					$(this).dialog("destroy");
+					this.style.cssText = "display: none;";
+				}
+			});
+			
+		UI.closeModal();
+	}*/
 	
 	wallStreet.init = function()
 	{
@@ -66,6 +109,7 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 		GDT.on(GDT.eventKeys.saves.saving, wallStreet.saveData);	// Maybe to delete
 		GDT.on(GDT.eventKeys.saves.loading, wallStreet.loadData);
 		GDT.on(GDT.eventKeys.gameplay.weekProceeded, wallStreet.traderSalaryLevy);
+		//GDT.on(GDT.eventKeys.gameplay.weekProceeded, wallStreet.handle);//test
 		
 		// Event used to indicate that the player can now Hire a Trader (dialog window)
 		wallStreet.unlockTraderHiringEvent =
@@ -84,8 +128,8 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 				return new Notification(
 										{
 											sourceId: "C32347F2-4AC3-4293-852C-9C122C0C32E5",
-											header: "Hire Trader".dlocalize(),
-											text: "With this new office, new opportunities are available to you.\n\nYou can now hire a Trader to deal with stock exchange!\nWith him you can earn a lot of money, but be careful, you also can lose a lot.{n}To hire a Trader see you CEO.".dlocalize(),
+											header: "Hire Trader".dlocalize(m_idMod),
+											text: "With this new office, new opportunities are available to you.\n\nYou can now hire a Trader to deal with stock exchange!\nWith him you can earn a lot of money, but be careful, you also can lose a lot.{n}To hire a Trader see you CEO.".dlocalize(m_idMod),
 										});
 			}
 		};
@@ -106,9 +150,9 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 				return new Notification(
 										{
 											sourceId: "8FFA272-EF44-44B0-B6F2-9EEE69957996",
-											header: "Hire Trader".dlocalize(),
-											text: "Do you want to hire a Trader ?\n\nHire Cost : ".dlocalize() + (m_storedDatas.data["m_hireCost"]/1000).toString() + "K\nBase Salary : ".dlocalize() + (m_storedDatas.data["m_traderSalary"]/1000).toString() + "K".dlocalize(),
-											options: ["Yes".dlocalize(), "No".dlocalize()]
+											header: "Hire Trader".dlocalize(m_idMod),
+											text: "Do you want to hire a Trader ?\n\nHire Cost : ".dlocalize(m_idMod) + (m_storedDatas.data["m_hireCost"]/1000).toString() + "K\nBase Salary : ".dlocalize(m_idMod) + (m_storedDatas.data["m_traderSalary"]/1000).toString() + "K".dlocalize(m_idMod),
+											options: ["Yes".dlocalize(m_idMod), "No".dlocalize(m_idMod)]
 										});
 			},
 			
@@ -118,12 +162,12 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 					return;
 				
 				// Hire Trader Cost
-				GameManager.company.adjustCash(-m_storedDatas.data["m_hireCost"], "Hire Trader".dlocalize());
+				GameManager.company.adjustCash(-m_storedDatas.data["m_hireCost"], "Hire Trader".dlocalize(m_idMod));
 				
 				var notif = new Notification(
 											{
-												header: "Trader Hired".dlocalize(),
-												text: "You have successfully hire a Trader.\n\nYou can now train him and allocate a budget that he can use to do some speculations!".dlocalize(),
+												header: "Trader Hired".dlocalize(m_idMod),
+												text: "You have successfully hire a Trader.\n\nYou can now train him and allocate a budget that he can use to do some speculations!".dlocalize(m_idMod),
 											});
 				
 				m_storedDatas.data["m_haveTrader"] = true;
@@ -149,9 +193,9 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 				return new Notification(
 										{
 											sourceId: "33F06DAA-CDC5-4879-B2B8-A2026FDAA562",
-											header: "Fire Trader".dlocalize(),
-											text: "Do you want to fire your Trader ?".dlocalize(),
-											options: ["Yes".dlocalize(), "No".dlocalize()]
+											header: "Fire Trader".dlocalize(m_idMod),
+											text: "Do you want to fire your Trader ?".dlocalize(m_idMod),
+											options: ["Yes".dlocalize(m_idMod), "No".dlocalize(m_idMod)]
 										});
 			},
 			
@@ -164,8 +208,8 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 				
 				var notif = new Notification(
 											{
-												header: "Trader Fired".dlocalize(),
-												text: "You have fired your Trader.\n\nYou can hire another one when you want, but you will need to retrain him.".dlocalize(),
+												header: "Trader Fired".dlocalize(m_idMod),
+												text: "You have fired your Trader.\n\nYou can hire another one when you want, but you will need to retrain him.".dlocalize(m_idMod),
 											});
 				
 				GameManager.company.notifications.push(notif);
@@ -191,7 +235,7 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 					// Create Item for the context menu
 					var hireTraderItem =
 					{
-						label: "Hire a Trader".dlocalize(),
+						label: "Hire a Trader".dlocalize(m_idMod),
 						action: function()
 						{
 							Sound.click();
@@ -208,7 +252,7 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 					// Create Item for the context menu
 					var fireTraderItem =
 					{
-						label: "Fire the Trader".dlocalize(),
+						label: "Fire the Trader".dlocalize(m_idMod),
 						action: function()
 						{
 							Sound.click();
@@ -220,7 +264,7 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 					// Create Item for the context menu
 					var allocateTraderBudgetItem =
 					{
-						label: "Manage Trader".dlocalize(),
+						label: "Manage Trader".dlocalize(m_idMod),
 						action: function()
 						{
 							Sound.click();
