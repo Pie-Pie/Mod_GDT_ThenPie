@@ -4,6 +4,8 @@ var Makemoremoney = {};
 (function () {
 
 	var conjonctur = ["recession", "stagnation", "revival", "expansion"];
+	var countWeek = 0;
+	var hasAskLoan = false;
 	var modID = "makemoremoney";
 	
 	var m_dataStore; // For saving data
@@ -58,6 +60,11 @@ var Makemoremoney = {};
 	var weeklyLoan = function (e) {
 		if(m_dataStore.data.hasLoan)
 			GameManager.company.adjustCash(-m_dataStore.data.loanWeeklyAmount, "Loan payments");
+			
+		if(countWeek%4 == 0)
+			m_dataStore.data.currentConjonctur = (m_dataStore.data.currentConjonctur + Math.round(3 * GameManager.company.getRandom()))%4;
+		
+		countWeek++;	
 	}
 
 	var load = function () {
@@ -122,6 +129,37 @@ var Makemoremoney = {};
 			};
 		}
 		
+		var launchLoan =
+		{
+			id: "launchLoan",
+			
+			trigger: function()
+			{
+				return false;
+			},
+			
+			getNotification: function(company)
+			{
+				return new Notification(
+				{
+					sourceId: "launchLoan",
+					header: "National Bank : J.P Morgan & Co".dlocalize(),
+					text: "Welcome to J.P Morgan & Co\n\nWe are able to give you some money. If you need it. You just need to ask.\n\nYou are about to pursue a bank loan.\nCordialy,\nJ.P Morgan & Co".dlocalize(),
+					options: ["Continue".dlocalize(), "Refuse".dlocalize()]
+				});
+			},
+			
+			complete: function(result)
+			{
+				if(result==1)
+					return;
+				
+				hasAskLoan = true;
+				GameManager.company.notifications.insertAt(0, fesevent.getNotification(GameManager.company));
+			}
+		};
+		GDT.addEvent(launchLoan);
+		
 		var fesevent =
 		{
 			id: "bankLoan",
@@ -138,8 +176,8 @@ var Makemoremoney = {};
 						return new Notification(
 						{
 							sourceId: "bankLoan",
-							header: "You want a bank loan".dlocalize(),
-							text: "Which amount do you want ?".dlocalize(),
+							header: "National Bank : J.P Morgan & Co".dlocalize(),
+							text: "Welcome to J.P Morgan & Co\n\nYou want a bank loan. Which amount do you want ? \n\nThe review of his file take nearly one week.".dlocalize(),
 							options: ["5K".dlocalize(), "10K".dlocalize(), "25K".dlocalize(), "CANCEL".dlocalize()]
 						});
 						break;
@@ -148,8 +186,8 @@ var Makemoremoney = {};
 						return new Notification(
 						{
 							sourceId: "bankLoan",
-							header: "You want a bank loan?".dlocalize(),
-							text: "Which amount do you want ?".dlocalize(),
+							header: "National Bank : J.P Morgan & Co".dlocalize(),
+							text: "Welcome to J.P Morgan & Co\n\nYou want a bank loan. Which amount do you want ? \n\nThe review of his file take nearly one week.".dlocalize(),
 							options: ["500K".dlocalize(), "1M".dlocalize(), "2M".dlocalize(), "CANCEL".dlocalize()]
 						});
 						break;
@@ -159,8 +197,8 @@ var Makemoremoney = {};
 						return new Notification(
 						{
 							sourceId: "bankLoan",
-							header: "You want a bank loan?".dlocalize(),
-							text: "Which amount do you want ?".dlocalize(),
+							header: "National Bank : J.P Morgan & Co".dlocalize(),
+							text: "Welcome to J.P Morgan & Co\n\nYou want a bank loan. Which amount do you want ? \n\nThe review of his file take nearly one week.".dlocalize(),
 							options: ["10M".dlocalize(), "50M".dlocalize(), "100M".dlocalize(), "CANCEL".dlocalize()]
 						});
 						break;
@@ -186,8 +224,8 @@ var Makemoremoney = {};
 					
 					n = new Notification(
 					{
-						header: "Allow Loan of {0}".dlocalize().format(m_dataStore.data.strLoanAmount),
-						text: "Due to your reputation, we are pleased to allocate you a {0} loan. \n  The rate is {1}%".dlocalize().format(m_dataStore.data.strLoanAmount, m_dataStore.data.loanRate),
+						header: "National Bank : J.P Morgan & Co".dlocalize().format(),
+						text: "Welcome to J.P Morgan & Co\n\nDue to your reputation, we are pleased to allocate you a {0} loan. \nBecause of the economic situation we accord you this loan with a rate of {1}%.\n\nKind regards,".dlocalize().format(m_dataStore.data.strLoanAmount, m_dataStore.data.loanRate),
 						weeksUntilFired: 2.2 * GameManager.company.getRandom(),
 						options: ["Accept".dlocalize(), "Decline the offer".dlocalize()],
 						sourceId: "bankLoanRate" //ENVOIS l'event à l'event d'id bankLoan
@@ -195,12 +233,12 @@ var Makemoremoney = {};
 				
 				}else{
 					// Other way to write les Notifications
-					n = new Notification("Downright refusal Loan of {0}".dlocalize().format(m_dataStore.data.loanAmount),
-						"We have the regret to refuse your loan. Your situation is bad, we don't accord you. \nThe bank is still here if you increase your position. \n\nKind regards,\nMr Woody Banker".dlocalize(),
-						"Thank you in any case, Mr President.".dlocalize(),
+					n = new Notification("National Bank : J.P Morgan & Co".dlocalize(),
+						"Welcome to J.P Morgan & Co\n\nDownright refusal Loan of {0},\nWe have the regret to refuse your loan. Your situation is bad, we don't accord you. \nThe bank is still here if you increase your position. \n\nKind regards,\nMr Woody Banker".dlocalize().format(m_dataStore.data.strLoanAmount),
+						"Thank you in any case.".dlocalize(),
 						1.4 * GameManager.company.getRandom()
 					);
-					
+					hasAskLoan = false;
 				}
 				
 				GameManager.company.notifications.push(n);
@@ -232,8 +270,8 @@ var Makemoremoney = {};
 				m_dataStore.data.loanWeeklyAmount = (m_dataStore.data.loanAmount/nbWeek) * /*taxe*/(1+(m_dataStore.data.loanRate/100)); // 1.022 <=> 1 + (2.2/100)
 			
 				// Other way to write les Notifications
-				n = new Notification("Bank and mortgage interest rates".dlocalize(),
-					"You signed for a 27 weeks loan. You should prepare the interest payments elevated at {0} each week. \n\nIf you can pay the interest you should close doors".dlocalize().format(intToStr(m_dataStore.data.loanWeeklyAmount)),
+				n = new Notification("National Bank : J.P Morgan & Co".dlocalize(),
+					"Welcome to J.P Morgan & Co\n\nBank and mortgage interest rates,\n You signed for a 27 weeks loan. You should prepare the interest payments elevated at {0} each week. \n\nIf you can pay the interest you should close doors".dlocalize().format(intToStr(m_dataStore.data.loanWeeklyAmount)),
 					"Agree".dlocalize(),
 					0.0
 				);
@@ -243,8 +281,8 @@ var Makemoremoney = {};
 				// Final
 				n = new Notification(
 				{
-					header: "Bank : End your loan".dlocalize(),
-					text: "Your {0} loan is paid off.".dlocalize().format(m_dataStore.data.strLoanAmount),
+					header: "National Bank : J.P Morgan & Co".dlocalize(),
+					text: "Welcome to J.P Morgan & Co\n\nYour {0} loan is paid off. You are now able to pursue a new one.\n\n'I love tree', PiQuE___AC reference".dlocalize().format(m_dataStore.data.strLoanAmount),
 					buttonText: "Finalize",
 					weeksUntilFired: nbWeek,
 					sourceId: "bankLoanEnd"
@@ -277,6 +315,7 @@ var Makemoremoney = {};
 			{
 				//GDT.off(GDT.eventKeys.gameplay.weekProceeded, weeklyLoan);
 				m_dataStore.data.hasLoan = false;
+				hasAskLoan = false;
 			}
 			
 		};
@@ -293,17 +332,19 @@ var Makemoremoney = {};
 			
 			if (triggered && !m_dataStore.data.hasLoan)
 			{
+				
 				var fesitem =
 				{
 					label: vacationlabel,
 					action: function()
 					{
 						Sound.click();
-						GameManager.company.notifications.insertAt(0, fesevent.getNotification(GameManager.company));
+						GameManager.company.notifications.insertAt(0, launchLoan.getNotification(GameManager.company));
 						GameManager.resume(true);
 					}
 				};
-				items.push(fesitem);
+				if(!hasAskLoan)
+					items.push(fesitem);
 			}
 			
 			oriShowMenu(items, f);
