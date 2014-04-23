@@ -2,7 +2,7 @@
 {
 	var ready = function()
 	{
-		Makemoremoney.load();
+		Makemoremoney.init();
 		
 	};
 

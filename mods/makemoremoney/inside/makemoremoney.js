@@ -4,14 +4,9 @@ var Makemoremoney = {};
 (function () {
 
 	var conjonctur = ["recession", "stagnation", "revival", "expansion"];
+	var modID = "makemoremoney";
 	
-	var loanAmount;
-	var strLoanAmount;
-	var loanRate;
-	var loanWeeklyAmount;
-	var hasLoan = false;
-	
-	var store; // For saving data
+	var m_dataStore; // For saving data
 
 	var computeAmount = function (result) {
 
@@ -63,29 +58,43 @@ var Makemoremoney = {};
 	var weeklyLoan = function (e) {
 		GameManager.company.adjustCash(-loanWeeklyAmount, "Loan payments");
 	}
-	
+
 	var load = function () {
-		// Chargement des données
-		loanAmount = store.data["loanAmount"];
-		strLoanAmount = store.data["strLoanAmount"];
-		loanRate = store.data["loanRate"];
-		loanWeeklyAmount = store.data["loanWeeklyAmount"];
-		hasLoan = store.data["hasLoan"];
-		// END
+		// Loading data
+		if(!m_dataStore)
+			m_dataStore = GDT.getDataStore(modID);
+
+			
+		if (!m_dataStore.data.loanAmount)
+			m_dataStore.data.loanAmount = 0;
+			
+		if (!m_dataStore.data.strLoanAmount)
+			m_dataStore.data.strLoanAmount = "0 cr.";
+			
+		if (!m_dataStore.data.loanRate)
+			m_dataStore.data.loanRate = 2.2;
+			
+		if (!m_dataStore.data.loanWeeklyAmount)
+			m_dataStore.data.loanWeeklyAmount = 0;
+
+		if (!m_dataStore.data.hasLoan)
+			m_dataStore.data.hasLoan = false;
 	}
 	
 	var save = function() {
-		store.data["loanAmount"] = loanAmount;
-		store.data["strLoanAmount"] = strLoanAmount;
-		store.data["loanRate"] = loanRate;
-		store.data["loanWeeklyAmount"] = loanWeeklyAmount;
-		store.data["hasLoan"] = hasLoan;
+		// store.data["loanAmount"] = loanAmount;
+		// store.data["strLoanAmount"] = strLoanAmount;
+		// store.data["loanRate"] = loanRate;
+		// store.data["loanWeeklyAmount"] = loanWeeklyAmount;
+		// store.data["hasLoan"] = hasLoan;
 	}
 				
-	Makemoremoney.load = function () {
-		store = GDT.getDataStore("makemoremoney");
+	Makemoremoney.init = function () {
 		
-		GDT.on(GDT.eventKeys.saves.saving ,save);
+		
+		GDT.on(GDT.eventKeys.saves.saving ,save); //seems useless
+		
+		GDT.on(GDT.eventKeys.saves.loading ,load);
 		
 		var dlocalizeVersion = 3;
 		if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dlocalizeVersion && String.prototype.dlocalizeVersion < dlocalizeVersion))
@@ -160,20 +169,20 @@ var Makemoremoney = {};
 				if(result == 3) // CANCEL case
 					return;
 				
-				loanAmount = computeAmount(result);
+				m_dataStore.data.loanAmount = computeAmount(result);
 				
 				var n;
 				
 				if(checkLoan(result)) {
 
 					// Donner le Rate
-					loanRate = rate(result);
-					strLoanAmount = intToStr(loanAmount);
+					m_dataStore.data.loanRate = rate(result);
+					m_dataStore.data.strLoanAmount = intToStr(m_dataStore.data.loanAmount);
 					
 					n = new Notification(
 					{
-						header: "Allow Loan of {0}".dlocalize().format(strLoanAmount),
-						text: "Due to your reputation, we are pleased to allocate you a {0} loan. \n  The rate is {1}%".dlocalize().format(strLoanAmount, loanRate),
+						header: "Allow Loan of {0}".dlocalize().format(m_dataStore.data.strLoanAmount),
+						text: "Due to your reputation, we are pleased to allocate you a {0} loan. \n  The rate is {1}%".dlocalize().format(m_dataStore.data.strLoanAmount, m_dataStore.data.loanRate),
 						weeksUntilFired: 2.2 * GameManager.company.getRandom(),
 						options: ["Accept".dlocalize(), "Decline the offer".dlocalize()],
 						sourceId: "bankLoanRate" //ENVOIS l'event à l'event d'id bankLoan
@@ -181,7 +190,7 @@ var Makemoremoney = {};
 				
 				}else{
 					// Other way to write les Notifications
-					n = new Notification("Downright refusal Loan of {0}".dlocalize().format(loanAmount),
+					n = new Notification("Downright refusal Loan of {0}".dlocalize().format(m_dataStore.data.loanAmount),
 						"We have the regret to refuse your loan. Your situation is bad, we don't accord you. \nThe bank is still here if you increase your position. \n\nKind regards,\nMr Woody Banker".dlocalize(),
 						"Thank you in any case, Mr President.".dlocalize(),
 						1.4 * GameManager.company.getRandom()
@@ -215,11 +224,11 @@ var Makemoremoney = {};
 				var n;
 				var nbWeek = 19 + 18 * GameManager.company.getRandom();
 				
-				loanWeeklyAmount = (loanAmount/nbWeek) * /*taxe*/(1+(loanRate/100)); // 1.022 <=> 1 + (2.2/100)
+				m_dataStore.data.loanWeeklyAmount = (m_dataStore.data.loanAmount/nbWeek) * /*taxe*/(1+(m_dataStore.data.loanRate/100)); // 1.022 <=> 1 + (2.2/100)
 			
 				// Other way to write les Notifications
 				n = new Notification("Bank and mortgage interest rates".dlocalize(),
-					"You signed for a 27 weeks loan. You should prepare the interest payments elevated at {0} each week. \n\nIf you can pay the interest you should close doors".dlocalize().format(intToStr(loanWeeklyAmount)),
+					"You signed for a 27 weeks loan. You should prepare the interest payments elevated at {0} each week. \n\nIf you can pay the interest you should close doors".dlocalize().format(intToStr(m_dataStore.data.loanWeeklyAmount)),
 					"Agree".dlocalize(),
 					0.0
 				);
@@ -229,8 +238,8 @@ var Makemoremoney = {};
 				// Final
 				n = new Notification(
 				{
-					header: "Bank : End your loan".dlocalize().format(loanAmount),
-					text: "Your loan is paid off.".dlocalize().format(loanRate),
+					header: "Bank : End your loan".dlocalize(),
+					text: "Your {0} loan is paid off.".dlocalize().format(m_dataStore.data.strLoanAmount),
 					buttonText: "Finalize",
 					weeksUntilFired: nbWeek,
 					sourceId: "bankLoanEnd"
@@ -273,11 +282,11 @@ var Makemoremoney = {};
 		{
 
 			var selectedStaff = UI.getCharUnderCursor();
-			var vacationlabel = "Bank Loan".localize("menu item");
+			var vacationlabel = "Bank Loan...".localize("menu item");
 			
 			var triggered = (selectedStaff != null && selectedStaff == GameManager.company.staff[0]);
 			
-			if (triggered && !hasLoan)
+			if (triggered && !m_dataStore.data.hasLoan)
 			{
 				var fesitem =
 				{
@@ -285,11 +294,11 @@ var Makemoremoney = {};
 					action: function()
 					{
 						Sound.click();
-						GameManager.company.notifications.insertAt(0, fesevent.getNotification(GameManager.company, selectedStaff));
+						GameManager.company.notifications.insertAt(0, fesevent.getNotification(GameManager.company));
 						GameManager.resume(true);
 					}
 				};
-				items.splice(items.length - 1, 0, fesitem);
+				items.push(fesitem);
 			}
 			
 			oriShowMenu(items, f);
