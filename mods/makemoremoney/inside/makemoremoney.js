@@ -43,20 +43,21 @@ var Makemoremoney = {};
 	// TODO
 	var checkLoan = function (result) {
 		var game = GameManager.company.gameLog.last();
-
+		var cap = (6 + result) + (2 - m_dataStore.data.currentConjonctur);
 		
-		//if(GameManager.company.lastG
-		//return true;
-		
-		return true;
+		if(game.score > cap)
+			return true;
+		else
+			return false;	
 	}
 	
 	var rate = function (result) {
-		return 2.2;
+		return Math.roundToDecimals( 5 + Math.abs(15 * GameManager.company.getRandom() - (5 * m_dataStore.data.currentConjonctur * GameManager.company.getRandom())), 2);
 	}
 	
 	var weeklyLoan = function (e) {
-		GameManager.company.adjustCash(-loanWeeklyAmount, "Loan payments");
+		if(m_dataStore.data.hasLoan)
+			GameManager.company.adjustCash(-m_dataStore.data.loanWeeklyAmount, "Loan payments");
 	}
 
 	var load = function () {
@@ -79,6 +80,9 @@ var Makemoremoney = {};
 
 		if (!m_dataStore.data.hasLoan)
 			m_dataStore.data.hasLoan = false;
+			
+		if(!m_dataStore.data.currentConjonctur)
+			m_dataStore.data.currentConjonctur = 1; // Stagnation
 	}
 	
 	var save = function() {
@@ -93,8 +97,9 @@ var Makemoremoney = {};
 		
 		
 		GDT.on(GDT.eventKeys.saves.saving ,save); //seems useless
-		
 		GDT.on(GDT.eventKeys.saves.loading ,load);
+		
+		GDT.on(GDT.eventKeys.gameplay.weekProceeded, weeklyLoan);
 		
 		var dlocalizeVersion = 3;
 		if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dlocalizeVersion && String.prototype.dlocalizeVersion < dlocalizeVersion))
@@ -246,13 +251,13 @@ var Makemoremoney = {};
 				});
 				
 				GameManager.company.notifications.push(n);
-				
-				GDT.on(GDT.eventKeys.gameplay.weekProceeded, weeklyLoan);
-				hasLoan = true;
+
+				m_dataStore.data.hasLoan = true;
 			}
 			
 		};
 		GDT.addEvent(rateLoanEvent);
+		
 		
 		
 		// End the loan
@@ -270,8 +275,8 @@ var Makemoremoney = {};
 			
 			complete: function(result)
 			{
-				GDT.off(GDT.eventKeys.gameplay.weekProceeded, weeklyLoan);
-				hasLoan = false;
+				//GDT.off(GDT.eventKeys.gameplay.weekProceeded, weeklyLoan);
+				m_dataStore.data.hasLoan = false;
 			}
 			
 		};
