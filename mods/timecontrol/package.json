@@ -1,0 +1,13 @@
+﻿{
+	"id": "timecontrol",
+	"name": "Time Control",
+	"version": "0.1.0",
+	"author": "Thenkei & DarkMaster94",
+	"url": "NO_URL",
+	"description": "You have the power to control time line.",
+	"main": "./timecontrol.js",
+	"dependencies":
+	{
+		"gdt-modAPI": "0.1.x"
+	}
+}
