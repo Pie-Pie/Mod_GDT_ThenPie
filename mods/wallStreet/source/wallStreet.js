@@ -27,11 +27,14 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 {
 	var m_storedDatas;
 	var m_haveTrader = false;
+	var m_traderSalary = 35000;
+	var m_hireCost = 100000;
 	
 	var saveData = function() 
 	{
 		// Save mod datas
 		m_storedDatas.data["haveTrader"] = m_haveTrader;
+		m_storedDatas.data["traderSalary"] = m_traderSalary;
 	}
 	
 	var loadData = function() 
@@ -39,7 +42,16 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 		m_storedDatas = GDT.getDataStore("wallStreet");
 		
 		// Load mod datas
-		m_haveTrader = m_storedDatas.data["haveTrader"];
+		//m_haveTrader = m_storedDatas.data["haveTrader"];
+		//m_traderSalary = m_storedDatas.data["traderSalary"];
+	}
+	
+	var traderSalaryLevy = function()
+	{
+		var week = parseInt(GameManager.company.currentWeek.toString());
+
+		if (m_haveTrader && week %4 == 0)
+			GameManager.company.adjustCash(-m_traderSalary, "Trader Salary".dlocalize());
 	}
 	
 	wallStreet.init = function()
@@ -47,6 +59,31 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 		// Event to save and load mod datas
 		GDT.on(GDT.eventKeys.saves.saving, saveData);
 		GDT.on(GDT.eventKeys.saves.loading, loadData);
+		GDT.on(GDT.eventKeys.gameplay.weekProceeded, traderSalaryLevy);
+		
+		// Event used to indicate that the player can now Hire a Trader (dialog window)
+		var unlockTraderHiringEvent =
+		{
+			id: "C32347F2-4AC3-4293-852C-9C122C0C32E5",
+			
+			maxTriggers: 1,
+			
+			trigger: function()
+			{
+				return GameManager.company.currentLevel >= 4;
+			},
+			
+			getNotification: function()
+			{
+				return new Notification(
+										{
+											sourceId: "C32347F2-4AC3-4293-852C-9C122C0C32E5",
+											header: "Hire Trader".dlocalize(),
+											text: "With this new office, new opportunities are available to you.\n\nYou can now hire a Trader to deal with stock exchange!\nWith him you can earn a lot of money, but be careful, you also can lose a lot.{n}To hire a Trader see you CEO.".dlocalize(),
+										});
+			}
+		};
+		GDT.addEvent(unlockTraderHiringEvent);
 		
 		// Event to Hire a Trader (Generate a dialog window)
 		var hireTraderEvent =
@@ -64,7 +101,7 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 										{
 											sourceId: "8FFA272-EF44-44B0-B6F2-9EEE69957996",
 											header: "Hire Trader".dlocalize(),
-											text: "Do you want to hire a Trader ?".dlocalize(),
+											text: "Do you want to hire a Trader ?\n\nHire Cost : " + (m_hireCost/1000).toString() + "K\nBase Salary : " + (m_traderSalary/1000).toString() + "K".dlocalize(),
 											options: ["Yes".dlocalize(), "No".dlocalize()]
 										});
 			},
@@ -73,6 +110,9 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 			{
 				if(result != 0) // Case not answer Yes
 					return;
+				
+				// Hire Trader Cost
+				GameManager.company.adjustCash(-m_hireCost, "Hire Trader".dlocalize());
 				
 				var notif = new Notification(
 											{
