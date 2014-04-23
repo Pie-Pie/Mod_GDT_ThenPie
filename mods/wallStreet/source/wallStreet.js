@@ -25,39 +25,45 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 
 (function()
 {
-	var m_storedDatas;
-	var m_haveTrader = false;
-	var m_traderSalary = 35000;
-	var m_hireCost = 100000;
+	var m_idMod = "wallStreet";
+	var m_storedDatas;	// Datas used by the mod
 	
 	var saveData = function() 
 	{
-		// Save mod datas
+		/*// Save mod datas
 		m_storedDatas.data["haveTrader"] = m_haveTrader;
-		m_storedDatas.data["traderSalary"] = m_traderSalary;
+		m_storedDatas.data["traderSalary"] = m_traderSalary;*/
 	}
 	
 	var loadData = function() 
-	{
-		m_storedDatas = GDT.getDataStore("wallStreet");
-		
+	{		
 		// Load mod datas
-		//m_haveTrader = m_storedDatas.data["haveTrader"];
-		//m_traderSalary = m_storedDatas.data["traderSalary"];
+		if(!m_storedDatas)
+			m_storedDatas = GDT.getDataStore(m_idMod);
+
+			
+		if (!m_storedDatas.data.m_haveTrader)
+			m_storedDatas.data.m_haveTrader = false;
+			
+		if (!m_storedDatas.data.m_traderSalary)
+			m_storedDatas.data.m_traderSalary = 35000;
+			
+		if (!m_storedDatas.data.m_hireCost)
+			m_storedDatas.data.m_hireCost = 100000;
 	}
 	
 	var traderSalaryLevy = function()
 	{
 		var week = parseInt(GameManager.company.currentWeek.toString());
 
-		if (m_haveTrader && week %4 == 0)
-			GameManager.company.adjustCash(-m_traderSalary, "Trader Salary".dlocalize());
+		if (m_storedDatas.data.m_haveTrader && week %4 == 0)
+			GameManager.company.adjustCash(-m_storedDatas.data.m_traderSalary, "Trader Salary".dlocalize());
 	}
 	
 	wallStreet.init = function()
 	{
 		// Event to save and load mod datas
-		GDT.on(GDT.eventKeys.saves.saving, saveData);
+		GDT.on(GDT.eventKeys.saves.saving, saveData);	// Maybe to delete
 		GDT.on(GDT.eventKeys.saves.loading, loadData);
 		GDT.on(GDT.eventKeys.gameplay.weekProceeded, traderSalaryLevy);
 		
@@ -101,7 +107,7 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 										{
 											sourceId: "8FFA272-EF44-44B0-B6F2-9EEE69957996",
 											header: "Hire Trader".dlocalize(),
-											text: "Do you want to hire a Trader ?\n\nHire Cost : " + (m_hireCost/1000).toString() + "K\nBase Salary : " + (m_traderSalary/1000).toString() + "K".dlocalize(),
+											text: "Do you want to hire a Trader ?\n\nHire Cost : " + (m_storedDatas.data.m_hireCost/1000).toString() + "K\nBase Salary : " + (m_storedDatas.data.m_traderSalary/1000).toString() + "K".dlocalize(),
 											options: ["Yes".dlocalize(), "No".dlocalize()]
 										});
 			},
@@ -112,7 +118,7 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 					return;
 				
 				// Hire Trader Cost
-				GameManager.company.adjustCash(-m_hireCost, "Hire Trader".dlocalize());
+				GameManager.company.adjustCash(-m_storedDatas.data.m_hireCost, "Hire Trader".dlocalize());
 				
 				var notif = new Notification(
 											{
@@ -120,7 +126,7 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 												text: "You have successfully hire a Trader.\n\nYou can now train him and allocate a budget that he can use to do some speculations!".dlocalize(),
 											});
 				
-				m_haveTrader = true;
+				m_storedDatas.data.m_haveTrader = true;
 				
 				GameManager.company.notifications.push(notif);
 			}
@@ -154,7 +160,7 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 				if(result != 0) // Case not answer Yes
 					return;
 				
-				m_haveTrader = false;
+				m_storedDatas.data.m_haveTrader = false;
 				
 				var notif = new Notification(
 											{
@@ -180,7 +186,7 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 			if (pdgSelected && GameManager.company.currentLevel >= 4)
 			{			
 				// If we have no trader we can hire one
-				if (!m_haveTrader)
+				if (!m_storedDatas.data.m_haveTrader)
 				{
 					// Create Item for the context menu
 					var hireTraderItem =
