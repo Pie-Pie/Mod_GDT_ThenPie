@@ -127,6 +127,46 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 		};
 		GDT.addEvent(hireTraderEvent);
 		
+		
+		// Event to Fire a Trader (Generate a dialog window)
+		var fireTraderEvent =
+		{
+			id: "33F06DAA-CDC5-4879-B2B8-A2026FDAA562",
+			
+			trigger: function()
+			{
+				return false;
+			},
+			
+			getNotification: function()
+			{
+				return new Notification(
+										{
+											sourceId: "33F06DAA-CDC5-4879-B2B8-A2026FDAA562",
+											header: "Fire Trader".dlocalize(),
+											text: "Do you want to fire your Trader ?".dlocalize(),
+											options: ["Yes".dlocalize(), "No".dlocalize()]
+										});
+			},
+			
+			complete: function(result)
+			{
+				if(result != 0) // Case not answer Yes
+					return;
+				
+				m_haveTrader = false;
+				
+				var notif = new Notification(
+											{
+												header: "Trader Fired".dlocalize(),
+												text: "You have fired your Trader.\n\nYou can hire another one when you want, but you will need to retrain him.".dlocalize(),
+											});
+				
+				GameManager.company.notifications.push(notif);
+			}
+		};
+		GDT.addEvent(fireTraderEvent);
+		
 		// Add if necessary an item to context menu to hire a trader (when click on PDG)
 		var baseContextMenu = UI.showContextMenu;	// Recover actual function on the show context Menu
 		var hireTrader = function(items, pos)
@@ -136,22 +176,57 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 			// Check if the PDG as been clicked
 			var pdgSelected = (selectedCharacter && selectedCharacter == GameManager.company.staff[0]);
 			
-			// Check if the player is at lvl 4 with no trader hired
-			if (pdgSelected && GameManager.company.currentLevel >= 4 && !m_haveTrader)
+			// Check if the player is at lvl 4
+			if (pdgSelected && GameManager.company.currentLevel >= 4)
 			{			
-				// Create Item for the context menu
-				var hireTraderItem =
+				// If we have no trader we can hire one
+				if (!m_haveTrader)
 				{
-					label: "Hire a Trader".dlocalize(),
-					action: function()
+					// Create Item for the context menu
+					var hireTraderItem =
 					{
-						Sound.click();
-						GameManager.company.notifications.insertAt(0, hireTraderEvent.getNotification());
-						GameManager.resume(true);
-					}
-				};
-				// Insert hireTraderItem at first pos in context menu
-				items.splice(0, 0, hireTraderItem);
+						label: "Hire a Trader".dlocalize(),
+						action: function()
+						{
+							Sound.click();
+							GameManager.company.notifications.insertAt(0, hireTraderEvent.getNotification());
+							GameManager.resume(true);
+						}
+					};
+					
+					// Insert hireTraderItem at first pos in context menu
+					items.splice(0, 0, hireTraderItem);
+				}
+				else	// We have already one, so we can fire him
+				{
+					// Create Item for the context menu
+					var fireTraderItem =
+					{
+						label: "Fire the Trader".dlocalize(),
+						action: function()
+						{
+							Sound.click();
+							GameManager.company.notifications.insertAt(0, fireTraderEvent.getNotification());
+							GameManager.resume(true);
+						}
+					};
+					
+					// Create Item for the context menu
+					var allocateTraderBudgetItem =
+					{
+						label: "Manage Trader".dlocalize(),
+						action: function()
+						{
+							Sound.click();
+							//GameManager.company.notifications.insertAt(0, fireTraderEvent.getNotification()); // TODO
+							GameManager.resume(true);
+						}
+					};
+					
+					// Insert fireTraderItem and manage trader at 2 first pos in context menu
+					items.splice(0, 0, fireTraderItem);
+					items.splice(1, 0, allocateTraderBudgetItem);
+				}
 			}
 
 			// Call to the old function to keep the same behaviour
