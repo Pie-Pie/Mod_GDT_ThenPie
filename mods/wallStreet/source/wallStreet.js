@@ -61,9 +61,9 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 	}
 	
 	//test
-	/*wallStreet.handle = function()
+	wallStreet.initPopup = function()
 	{
-		var res = $("#resources");
+		/*var res = $("#resources");
 		res.append("<div id=\"advSpyDialog\" class=\"tallWindow windowBorder\"> <div class=\"windowTitle\">" + "Advanced Spying".dlocalize(m_idMod) + "</div><div id=\"advSpyCost\" class=\"windowCostLabel\">" + "Cost:".dlocalize(m_idMod) + " 500K</div><div class=\"centeredButtonWrapper\" style=\"margin-top: 20px\"><h2>" + "Budget".dlocalize(m_idMod) + "</h2><div id=\"advSpyBudgetSlider\">			</div></div>" + "<div class=\"centeredButtonWrapper\" style=\"margin-top: 20px\"><h2>" + "Select target".dlocalize(m_idMod) + "</h2><div id=\"advSpyTargets\" style=\"height: 280px; overflow-y: auto; margin: 5px 20px 0px 20px;\"></div></div><br />" + "<div class=\"centeredButtonWrapper okButtonWrapper\"><div id=\"advSpyButton\" class=\"okButton baseButton windowMainActionButton disabledButton windowLargeOkButton\">" + "Spy".dlocalize(m_idMod) + "</div></div></div>");
 		
 		
@@ -100,8 +100,38 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 				}
 			});
 			
-		UI.closeModal();
-	}*/
+		UI.closeModal();*/
+		var res = $("#resources");
+		res.append("<div id=\"managePopup\" class=\"tallWindow windowBorder\"><div id=\"salaryLabel\" class=\"windowCostLabel\">" + "Salary:".dlocalize(m_idMod) + " 35K</div><div class=\"centeredButtonWrapper\" style=\"margin-top: 20px\"><h2>" + "Salary: ".dlocalize(m_idMod) + "</h2><div id=\"salarySlider\">			</div></div></div>");
+		
+		$("#salarySlider").slider(
+		{
+			min: 0,
+			max: 500,
+			value: 35,
+			step: 10,
+			slide: function(event, ui)
+			{
+				//alert($("#salarySlider").slider("value"));
+			}
+		});
+	}
+	
+	wallStreet.showManagePopup = function()
+	{
+		//if (UI.isModalContentOpen()) return;
+		UI.showModalContent("#managePopup",
+		{
+			onOpen: function()
+			{	
+				
+			},
+			onClose: function()
+			{
+				GameManager.resume(true);
+			}
+		});
+	};
 	
 	wallStreet.init = function()
 	{
@@ -110,6 +140,8 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 		GDT.on(GDT.eventKeys.saves.loading, wallStreet.loadData);
 		GDT.on(GDT.eventKeys.gameplay.weekProceeded, wallStreet.traderSalaryLevy);
 		//GDT.on(GDT.eventKeys.gameplay.weekProceeded, wallStreet.handle);//test
+		
+		wallStreet.initPopup();
 		
 		// Event used to indicate that the player can now Hire a Trader (dialog window)
 		wallStreet.unlockTraderHiringEvent =
@@ -217,6 +249,13 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 		};
 		GDT.addEvent(wallStreet.fireTraderEvent);
 		
+		
+		//function for event manageTrader
+		/*function forEventManage1()
+		{*/
+		
+		//}
+		
 		// Add if necessary an item to context menu to hire a trader (when click on PDG)
 		var baseContextMenu = UI.showContextMenu;	// Recover actual function on the show context Menu
 		wallStreet.hireTrader = function(items, pos)
@@ -268,8 +307,8 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 						action: function()
 						{
 							Sound.click();
-							//GameManager.company.notifications.insertAt(0, fireTraderEvent.getNotification()); // TODO
-							GameManager.resume(true);
+							wallStreet.showManagePopup();
+							//GameManager.resume(true);
 						}
 					};
 					
