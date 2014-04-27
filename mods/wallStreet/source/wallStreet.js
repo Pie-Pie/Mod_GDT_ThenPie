@@ -1,5 +1,8 @@
 var wallStreet = {};
 
+//////////////////////////////////////////////////////////////////////
+//////////////////////// External functions //////////////////////////
+//////////////////////////////////////////////////////////////////////
 // Declare the prototype of the function dlocalize, to manage localisation of the mod
 var dlocalizeVersion = 3;
 if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dlocalizeVersion && String.prototype.dlocalizeVersion < dlocalizeVersion))
@@ -21,7 +24,7 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 		else return retval;
 	};
 }
-///////////////////////
+
 // Function to check if an array contains a element with the given id
 function inArrayElementWithId(id, array)
 {
@@ -32,15 +35,20 @@ function inArrayElementWithId(id, array)
 			return i;
 	}
 	return -1;
-} 
-///////////////////////
-
+}
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
 
 (function()
 {
+	// Mod variables
 	var m_idMod = "wallStreet";
 	var m_storedDatas;	// Datas used by the mod
 	
+	//////////////////////////////////////////////////////////////////////
+	////////////////////////// Other functions ///////////////////////////
+	//////////////////////////////////////////////////////////////////////
 	wallStreet.loadData = function() 
 	{		
 		// Load mod datas
@@ -56,6 +64,9 @@ function inArrayElementWithId(id, array)
 			
 		if (!m_storedDatas.data["m_hireCost"])
 			m_storedDatas.data["m_hireCost"] = 100000;
+			
+		if (!m_storedDatas.data["m_gainMoney"])
+			m_storedDatas.data["m_gainMoney"] = 0;
 	}
 	
 	wallStreet.traderSalaryLevy = function()
@@ -66,7 +77,9 @@ function inArrayElementWithId(id, array)
 			GameManager.company.adjustCash(-m_storedDatas.data["m_traderSalary"], "Trader Salary".dlocalize(m_idMod));
 	}
 	
-	//test
+	//////////////////////////////////////////////////////////////////////
+	//////////////////////////////// GUI /////////////////////////////////
+	//////////////////////////////////////////////////////////////////////
 	wallStreet.initPopup = function()
 	{
 		/*var res = $("#resources");
@@ -137,6 +150,81 @@ function inArrayElementWithId(id, array)
 				GameManager.resume(true);
 			}
 		});
+	};
+	
+	wallStreet.customContextMenuBehaviour = function()
+	{
+		// Add if necessary an item to context menu to hire a trader (when click on PDG)
+		var baseContextMenu = UI.showContextMenu;	// Recover actual function on the show context Menu
+		wallStreet.hireTrader = function(items, pos)
+		{
+			// Recover which character has been clicked
+			var selectedCharacter = UI.getCharUnderCursor();
+			// Check if the PDG as been clicked
+			var pdgSelected = (selectedCharacter && selectedCharacter == GameManager.company.staff[0]);
+			
+			// Check if the player has selected the CEO
+			if (pdgSelected)
+			{
+				// Check if the player has done the Trading Research, minimum V1
+				if (inArrayElementWithId("EFEF2F70-0A53-4DE8-8205-C124C6310C17", GameManager.company.researchCompleted) != -1)
+				{	
+					// If we have no trader we can hire one
+					if (!m_storedDatas.data["m_haveTrader"])
+					{
+						// Create Item for the context menu
+						var hireTraderItem =
+						{
+							label: "Hire a Trader".dlocalize(m_idMod),
+							action: function()
+							{
+								Sound.click();
+								GameManager.company.notifications.insertAt(0, wallStreet.hireTraderEvent.getNotification());
+								GameManager.resume(true);
+							}
+						};
+						
+						// Insert hireTraderItem at first pos in context menu
+						items.splice(0, 0, hireTraderItem);
+					}
+					else	// We have already one, so we can fire him
+					{
+						// Create Item for the context menu
+						var fireTraderItem =
+						{
+							label: "Fire the Trader".dlocalize(m_idMod),
+							action: function()
+							{
+								Sound.click();
+								GameManager.company.notifications.insertAt(0, wallStreet.fireTraderEvent.getNotification());
+								GameManager.resume(true);
+							}
+						};
+						
+						// Create Item for the context menu
+						var allocateTraderBudgetItem =
+						{
+							label: "Manage Trader".dlocalize(m_idMod),
+							action: function()
+							{
+								Sound.click();
+								wallStreet.showManagePopup();
+								m_storedDatas.data["m_gainMoney"] += 4000000;
+								//GameManager.resume(true);
+							}
+						};
+						
+						// Insert fireTraderItem and manage trader at 2 first pos in context menu
+						items.splice(0, 0, fireTraderItem);
+						items.splice(1, 0, allocateTraderBudgetItem);
+					}
+				}
+			}
+			
+			// Call to the old function to keep the same behaviour
+			baseContextMenu(items, pos);
+		};
+		UI.showContextMenu = wallStreet.hireTrader;	// Put our custom function on show context Menu
 	};
 	
 	//////////////////////////////////////////////////////////////////////
@@ -281,6 +369,146 @@ function inArrayElementWithId(id, array)
 															}			
 														}
 							});
+		
+		GDT.addResearchItem(
+							{
+								id: "A16052BB-8882-4741-ABDE-AE37B2E7968F",
+								name: "Trading V2".dlocalize(m_idMod),
+								v: 2,
+								canResearch: function (company) 
+								{
+									return inArrayElementWithId("EFEF2F70-0A53-4DE8-8205-C124C6310C17", GameManager.company.researchCompleted) != -1 // Research Trading V1 Done
+								},
+								category: "Trading",
+								categoryDisplayName: "Trading".dlocalize(m_idMod),
+								complete: function () 	{			
+															var research =  Research.getAllItems().filter(function (f) { return f.id === "A16052BB-8882-4741-ABDE-AE37B2E7968F";  });
+															if (research)
+															{
+																GameManager.company.researchCompleted.push(research);	
+															}			
+														}
+							});
+		
+		GDT.addResearchItem(
+							{
+								id: "325C03F2-5FF1-4D34-B993-AFFC32B2252F",
+								name: "Trading V3".dlocalize(m_idMod),
+								v: 4,
+								canResearch: function (company) 
+								{
+									return inArrayElementWithId("A16052BB-8882-4741-ABDE-AE37B2E7968F", GameManager.company.researchCompleted) != -1 // Research Trading V2 Done
+								},
+								category: "Trading",
+								categoryDisplayName: "Trading".dlocalize(m_idMod),
+								complete: function () 	{			
+															var research =  Research.getAllItems().filter(function (f) { return f.id === "325C03F2-5FF1-4D34-B993-AFFC32B2252F";  });
+															if (research)
+															{
+																GameManager.company.researchCompleted.push(research);	
+															}			
+														}
+							});
+							
+		GDT.addResearchItem(
+							{
+								id: "39634EBF-1354-4738-99CD-CA0F4453B15C",
+								name: "Trading V4".dlocalize(m_idMod),
+								v: 6,
+								canResearch: function (company) 
+								{
+									return inArrayElementWithId("325C03F2-5FF1-4D34-B993-AFFC32B2252F", GameManager.company.researchCompleted) != -1 // Research Trading V3 Done
+								},
+								category: "Trading",
+								categoryDisplayName: "Trading".dlocalize(m_idMod),
+								complete: function () 	{			
+															var research =  Research.getAllItems().filter(function (f) { return f.id === "39634EBF-1354-4738-99CD-CA0F4453B15C";  });
+															if (research)
+															{
+																GameManager.company.researchCompleted.push(research);	
+															}			
+														}
+							});
+							
+		GDT.addResearchItem(
+							{
+								id: "BFFCE3f6-EFF7-4208-BA0D-BA5E8C74EC97",
+								name: "Trading V5".dlocalize(m_idMod),
+								v: 8,
+								canResearch: function (company) 
+								{
+									return inArrayElementWithId("39634EBF-1354-4738-99CD-CA0F4453B15C", GameManager.company.researchCompleted) != -1 // Research Trading V4 Done
+								},
+								category: "Trading",
+								categoryDisplayName: "Trading".dlocalize(m_idMod),
+								complete: function () 	{			
+															var research =  Research.getAllItems().filter(function (f) { return f.id === "BFFCE3f6-EFF7-4208-BA0D-BA5E8C74EC97";  });
+															if (research)
+															{
+																GameManager.company.researchCompleted.push(research);	
+															}			
+														}
+							});
+		
+		GDT.addResearchItem(
+							{
+								id: "8E87EE16-F17C-4C1B-BEA9-75B431C76472",
+								name: "Expert Trading".dlocalize(m_idMod),
+								v: 10,
+								canResearch: function (company) 
+								{
+									return m_storedDatas.data["m_gainMoney"] >= 1000000 // Have gain 1M Cash with speculations
+								},
+								category: "Trading",
+								categoryDisplayName: "Trading".dlocalize(m_idMod),
+								complete: function () 	{			
+															var research =  Research.getAllItems().filter(function (f) { return f.id === "8E87EE16-F17C-4C1B-BEA9-75B431C76472";  });
+															if (research)
+															{
+																GameManager.company.researchCompleted.push(research);	
+															}			
+														}
+							});
+		
+		GDT.addResearchItem(
+							{
+								id: "05DD056A-59C2-47D1-93F3-8EEB0FA9364D",
+								name: "Master Trading".dlocalize(m_idMod),
+								v: 12,
+								canResearch: function (company) 
+								{
+									return m_storedDatas.data["m_gainMoney"] >= 5000000 // Have gain 5M Cash with speculations MAYBE TO CHANGE
+								},
+								category: "Trading",
+								categoryDisplayName: "Trading".dlocalize(m_idMod),
+								complete: function () 	{			
+															var research =  Research.getAllItems().filter(function (f) { return f.id === "05DD056A-59C2-47D1-93F3-8EEB0FA9364D";  });
+															if (research)
+															{
+																GameManager.company.researchCompleted.push(research);	
+															}			
+														}
+							});
+							
+		GDT.addResearchItem(
+							{
+								id: "00C70B07-AB3D-41F2-BCC0-788B5C47C344",
+								name: "God Trading".dlocalize(m_idMod),
+								v: 14,
+								canResearch: function (company) 
+								{
+									return m_storedDatas.data["m_gainMoney"] >= 15000000 // Have gain 15M Cash with speculations MAYBE TO CHANGE
+								},
+								category: "Trading",
+								categoryDisplayName: "Trading".dlocalize(m_idMod),
+								complete: function () 	{			
+															var research =  Research.getAllItems().filter(function (f) { return f.id === "00C70B07-AB3D-41F2-BCC0-788B5C47C344";  });
+															if (research)
+															{
+																GameManager.company.researchCompleted.push(research);	
+															}			
+														}
+							});
 	};
 	
 	
@@ -297,86 +525,16 @@ function inArrayElementWithId(id, array)
 		wallStreet.initResearch();
 		// Init all events of the mod
 		wallStreet.initEvents();
+		// Change behaviour of context menu according to the mod, (keep base behaviour)
+		wallStreet.customContextMenuBehaviour();
 		
 		wallStreet.initPopup();
 		
-		//alert(Research.getAllItems());
 		//function for event manageTrader
 		/*function forEventManage1()
 		{*/
 		
 		//}
-		
-		// Add if necessary an item to context menu to hire a trader (when click on PDG)
-		var baseContextMenu = UI.showContextMenu;	// Recover actual function on the show context Menu
-		wallStreet.hireTrader = function(items, pos)
-		{
-			// Recover which character has been clicked
-			var selectedCharacter = UI.getCharUnderCursor();
-			// Check if the PDG as been clicked
-			var pdgSelected = (selectedCharacter && selectedCharacter == GameManager.company.staff[0]);
-			
-			// Check if the player has selected the CEO
-			if (pdgSelected)
-			{
-				// Check if the player has done the Trading Research, minimum V1
-				if (inArrayElementWithId("EFEF2F70-0A53-4DE8-8205-C124C6310C17", GameManager.company.researchCompleted) != -1)
-				{	
-					// If we have no trader we can hire one
-					if (!m_storedDatas.data["m_haveTrader"])
-					{
-						// Create Item for the context menu
-						var hireTraderItem =
-						{
-							label: "Hire a Trader".dlocalize(m_idMod),
-							action: function()
-							{
-								Sound.click();
-								GameManager.company.notifications.insertAt(0, wallStreet.hireTraderEvent.getNotification());
-								GameManager.resume(true);
-							}
-						};
-						
-						// Insert hireTraderItem at first pos in context menu
-						items.splice(0, 0, hireTraderItem);
-					}
-					else	// We have already one, so we can fire him
-					{
-						// Create Item for the context menu
-						var fireTraderItem =
-						{
-							label: "Fire the Trader".dlocalize(m_idMod),
-							action: function()
-							{
-								Sound.click();
-								GameManager.company.notifications.insertAt(0, wallStreet.fireTraderEvent.getNotification());
-								GameManager.resume(true);
-							}
-						};
-						
-						// Create Item for the context menu
-						var allocateTraderBudgetItem =
-						{
-							label: "Manage Trader".dlocalize(m_idMod),
-							action: function()
-							{
-								Sound.click();
-								wallStreet.showManagePopup();
-								//GameManager.resume(true);
-							}
-						};
-						
-						// Insert fireTraderItem and manage trader at 2 first pos in context menu
-						items.splice(0, 0, fireTraderItem);
-						items.splice(1, 0, allocateTraderBudgetItem);
-					}
-				}
-			}
-			
-			// Call to the old function to keep the same behaviour
-			baseContextMenu(items, pos);
-		};
-		UI.showContextMenu = wallStreet.hireTrader;	// Put our custom function on show context Menu
 	};
 	
 })();
