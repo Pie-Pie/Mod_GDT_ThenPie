@@ -22,6 +22,19 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 	};
 }
 ///////////////////////
+// Function to check if an array contains a element with the given id
+function inArrayElementWithId(id, array)
+{
+	var len = array.length;
+	for(var i = 0 ; i < len ; i++)
+	{
+		if(array[i].id == id)
+			return i;
+	}
+	return -1;
+} 
+///////////////////////
+
 
 (function()
 {
@@ -246,14 +259,27 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 		GDT.addResearchItem(
 							{
 								id: "EFEF2F70-0A53-4DE8-8205-C124C6310C17",
-								name: "Trading V1".localize(),
+								name: "Trading V1".dlocalize(m_idMod),
 								v: 1,
 								canResearch: function (company) 
 								{
 									return GameManager.company.currentLevel >= 4
 								},
 								category: "Trading",
-								categoryDisplayName: "Trading".localize()
+								categoryDisplayName: "Trading".dlocalize(m_idMod),
+								complete: function () 	{			
+															var research =  Research.getAllItems().filter(function (f) { return f.id === "EFEF2F70-0A53-4DE8-8205-C124C6310C17";  });
+															if (research)
+															{
+																GameManager.company.researchCompleted.push(research);
+																// Notification
+																var notif = new Notification({
+																								header: "Trading V1".dlocalize(m_idMod),
+																								text: "Congratulations, you have successfully developed the research 'Trading V1'.\nNow you can hire a Trader!{n}By increasing the level of your research you increase trading opportunities for your speculations. ".dlocalize(m_idMod),
+																							});
+																GameManager.company.notifications.push(notif);		
+															}			
+														}
 							});
 	};
 	
@@ -274,7 +300,7 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 		
 		wallStreet.initPopup();
 		
-		
+		//alert(Research.getAllItems());
 		//function for event manageTrader
 		/*function forEventManage1()
 		{*/
@@ -285,16 +311,17 @@ if (typeof String.prototype.dlocalize === "undefined" || (String.prototype.dloca
 		var baseContextMenu = UI.showContextMenu;	// Recover actual function on the show context Menu
 		wallStreet.hireTrader = function(items, pos)
 		{
-			if (false) // Research Trading Done
+			// Recover which character has been clicked
+			var selectedCharacter = UI.getCharUnderCursor();
+			// Check if the PDG as been clicked
+			var pdgSelected = (selectedCharacter && selectedCharacter == GameManager.company.staff[0]);
+			
+			// Check if the player has selected the CEO
+			if (pdgSelected)
 			{
-				// Recover which character has been clicked
-				var selectedCharacter = UI.getCharUnderCursor();
-				// Check if the PDG as been clicked
-				var pdgSelected = (selectedCharacter && selectedCharacter == GameManager.company.staff[0]);
-				
-				// Check if the player is at lvl 4
-				if (pdgSelected && GameManager.company.currentLevel >= 4)
-				{			
+				// Check if the player has done the Trading Research, minimum V1
+				if (inArrayElementWithId("EFEF2F70-0A53-4DE8-8205-C124C6310C17", GameManager.company.researchCompleted) != -1)
+				{	
 					// If we have no trader we can hire one
 					if (!m_storedDatas.data["m_haveTrader"])
 					{
