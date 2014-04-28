@@ -209,7 +209,6 @@ function inArrayElementWithId(id, array)
 							{
 								Sound.click();
 								wallStreet.showManagePopup();
-								m_storedDatas.data["m_gainMoney"] += 4000000;
 								//GameManager.resume(true);
 							}
 						};
@@ -344,171 +343,195 @@ function inArrayElementWithId(id, array)
 	//////////////////////////////////////////////////////////////////////
 	wallStreet.initResearch = function()
 	{
-		GDT.addResearchItem(
-							{
-								id: "EFEF2F70-0A53-4DE8-8205-C124C6310C17",
-								name: "Trading V1".dlocalize(m_idMod),
-								v: 1,
-								canResearch: function (company) 
+		var tradingResearchV1 =
 								{
-									return GameManager.company.currentLevel >= 4
-								},
-								category: "Trading",
-								categoryDisplayName: "Trading".dlocalize(m_idMod),
-								complete: function () 	{			
-															var research =  Research.getAllItems().filter(function (f) { return f.id === "EFEF2F70-0A53-4DE8-8205-C124C6310C17";  });
-															if (research)
-															{
-																GameManager.company.researchCompleted.push(research);
-																// Notification
-																var notif = new Notification({
-																								header: "Trading V1".dlocalize(m_idMod),
-																								text: "Congratulations, you have successfully developed the research 'Trading V1'.\nNow you can hire a Trader!{n}By increasing the level of your research you increase trading opportunities for your speculations. ".dlocalize(m_idMod),
-																							});
-																GameManager.company.notifications.push(notif);		
-															}			
-														}
-							});
+									id: "EFEF2F70-0A53-4DE8-8205-C124C6310C17",
+									name: "Trading V1".dlocalize(m_idMod),
+									pointsCost: 10,
+									duration: 8000,
+									cost: 20000,
+									canResearch: function (company) 
+									{
+										return GameManager.company.currentLevel >= 4
+									},
+									category: "Trading",
+									categoryDisplayName: "Trading".dlocalize(m_idMod),
+									complete: function () 	{			
+																var research =  Research.getAllItems().filter(function (f) { return f.id === "EFEF2F70-0A53-4DE8-8205-C124C6310C17";  });
+																if (research)
+																{
+																	GameManager.company.researchCompleted.push(research);
+																	// Notification
+																	var notif = new Notification({
+																									header: "Trading V1".dlocalize(m_idMod),
+																									text: "Congratulations, you have successfully developed the research 'Trading V1'.\nNow you can hire a Trader!{n}By increasing the level of your research you increase trading opportunities for your speculations. ".dlocalize(m_idMod),
+																								});
+																	GameManager.company.notifications.push(notif);		
+																}			
+															}
+								};
+		Research.SpecialItems.push(tradingResearchV1);
 		
-		GDT.addResearchItem(
-							{
-								id: "A16052BB-8882-4741-ABDE-AE37B2E7968F",
-								name: "Trading V2".dlocalize(m_idMod),
-								v: 2,
-								canResearch: function (company) 
+		var tradingResearchV2 =
 								{
-									return inArrayElementWithId("EFEF2F70-0A53-4DE8-8205-C124C6310C17", GameManager.company.researchCompleted) != -1 // Research Trading V1 Done
-								},
-								category: "Trading",
-								categoryDisplayName: "Trading".dlocalize(m_idMod),
-								complete: function () 	{			
-															var research =  Research.getAllItems().filter(function (f) { return f.id === "A16052BB-8882-4741-ABDE-AE37B2E7968F";  });
-															if (research)
-															{
-																GameManager.company.researchCompleted.push(research);	
-															}			
-														}
-							});
+									id: "A16052BB-8882-4741-ABDE-AE37B2E7968F",
+									name: "Trading V2".dlocalize(m_idMod),
+									pointsCost: 15,
+									duration: 10000,
+									cost: 40000,
+									canResearch: function (company) 
+									{
+										return inArrayElementWithId("EFEF2F70-0A53-4DE8-8205-C124C6310C17", GameManager.company.researchCompleted) != -1 // Research Trading V1 Done
+									},
+									category: "Trading",
+									categoryDisplayName: "Trading".dlocalize(m_idMod),
+									complete: function () 	{			
+																var research =  Research.getAllItems().filter(function (f) { return f.id === "A16052BB-8882-4741-ABDE-AE37B2E7968F";  });
+																if (research)
+																{
+																	GameManager.company.researchCompleted.push(research);	
+																}			
+															}
+								};
+		Research.SpecialItems.push(tradingResearchV2);
 		
-		GDT.addResearchItem(
-							{
-								id: "325C03F2-5FF1-4D34-B993-AFFC32B2252F",
-								name: "Trading V3".dlocalize(m_idMod),
-								v: 4,
-								canResearch: function (company) 
+		var tradingResearchV3 =
 								{
-									return inArrayElementWithId("A16052BB-8882-4741-ABDE-AE37B2E7968F", GameManager.company.researchCompleted) != -1 // Research Trading V2 Done
-								},
-								category: "Trading",
-								categoryDisplayName: "Trading".dlocalize(m_idMod),
-								complete: function () 	{			
-															var research =  Research.getAllItems().filter(function (f) { return f.id === "325C03F2-5FF1-4D34-B993-AFFC32B2252F";  });
-															if (research)
-															{
-																GameManager.company.researchCompleted.push(research);	
-															}			
-														}
-							});
-							
-		GDT.addResearchItem(
-							{
-								id: "39634EBF-1354-4738-99CD-CA0F4453B15C",
-								name: "Trading V4".dlocalize(m_idMod),
-								v: 6,
-								canResearch: function (company) 
-								{
-									return inArrayElementWithId("325C03F2-5FF1-4D34-B993-AFFC32B2252F", GameManager.company.researchCompleted) != -1 // Research Trading V3 Done
-								},
-								category: "Trading",
-								categoryDisplayName: "Trading".dlocalize(m_idMod),
-								complete: function () 	{			
-															var research =  Research.getAllItems().filter(function (f) { return f.id === "39634EBF-1354-4738-99CD-CA0F4453B15C";  });
-															if (research)
-															{
-																GameManager.company.researchCompleted.push(research);	
-															}			
-														}
-							});
-							
-		GDT.addResearchItem(
-							{
-								id: "BFFCE3f6-EFF7-4208-BA0D-BA5E8C74EC97",
-								name: "Trading V5".dlocalize(m_idMod),
-								v: 8,
-								canResearch: function (company) 
-								{
-									return inArrayElementWithId("39634EBF-1354-4738-99CD-CA0F4453B15C", GameManager.company.researchCompleted) != -1 // Research Trading V4 Done
-								},
-								category: "Trading",
-								categoryDisplayName: "Trading".dlocalize(m_idMod),
-								complete: function () 	{			
-															var research =  Research.getAllItems().filter(function (f) { return f.id === "BFFCE3f6-EFF7-4208-BA0D-BA5E8C74EC97";  });
-															if (research)
-															{
-																GameManager.company.researchCompleted.push(research);	
-															}			
-														}
-							});
+									id: "325C03F2-5FF1-4D34-B993-AFFC32B2252F",
+									name: "Trading V3".dlocalize(m_idMod),
+									pointsCost: 40,
+									duration: 12000,
+									cost: 120000,
+									canResearch: function (company) 
+									{
+										return inArrayElementWithId("A16052BB-8882-4741-ABDE-AE37B2E7968F", GameManager.company.researchCompleted) != -1 // Research Trading V2 Done
+									},
+									category: "Trading",
+									categoryDisplayName: "Trading".dlocalize(m_idMod),
+									complete: function () 	{			
+																var research =  Research.getAllItems().filter(function (f) { return f.id === "325C03F2-5FF1-4D34-B993-AFFC32B2252F";  });
+																if (research)
+																{
+																	GameManager.company.researchCompleted.push(research);	
+																}			
+															}
+								};
+		Research.SpecialItems.push(tradingResearchV3);
 		
-		GDT.addResearchItem(
-							{
-								id: "8E87EE16-F17C-4C1B-BEA9-75B431C76472",
-								name: "Expert Trading".dlocalize(m_idMod),
-								v: 10,
-								canResearch: function (company) 
+		var tradingResearchV4 =
 								{
-									return m_storedDatas.data["m_gainMoney"] >= 1000000 // Have gain 1M Cash with speculations
-								},
-								category: "Trading",
-								categoryDisplayName: "Trading".dlocalize(m_idMod),
-								complete: function () 	{			
-															var research =  Research.getAllItems().filter(function (f) { return f.id === "8E87EE16-F17C-4C1B-BEA9-75B431C76472";  });
-															if (research)
-															{
-																GameManager.company.researchCompleted.push(research);	
-															}			
-														}
-							});
+									id: "39634EBF-1354-4738-99CD-CA0F4453B15C",
+									name: "Trading V4".dlocalize(m_idMod),
+									pointsCost: 80,
+									duration: 14000,
+									cost: 180000,
+									canResearch: function (company) 
+									{
+										return inArrayElementWithId("325C03F2-5FF1-4D34-B993-AFFC32B2252F", GameManager.company.researchCompleted) != -1 // Research Trading V3 Done
+									},
+									category: "Trading",
+									categoryDisplayName: "Trading".dlocalize(m_idMod),
+									complete: function () 	{			
+																var research =  Research.getAllItems().filter(function (f) { return f.id === "39634EBF-1354-4738-99CD-CA0F4453B15C";  });
+																if (research)
+																{
+																	GameManager.company.researchCompleted.push(research);	
+																}			
+															}
+								};
+		Research.SpecialItems.push(tradingResearchV4);
 		
-		GDT.addResearchItem(
-							{
-								id: "05DD056A-59C2-47D1-93F3-8EEB0FA9364D",
-								name: "Master Trading".dlocalize(m_idMod),
-								v: 12,
-								canResearch: function (company) 
+		var tradingResearchV5 =
 								{
-									return m_storedDatas.data["m_gainMoney"] >= 5000000 // Have gain 5M Cash with speculations MAYBE TO CHANGE
-								},
-								category: "Trading",
-								categoryDisplayName: "Trading".dlocalize(m_idMod),
-								complete: function () 	{			
-															var research =  Research.getAllItems().filter(function (f) { return f.id === "05DD056A-59C2-47D1-93F3-8EEB0FA9364D";  });
-															if (research)
-															{
-																GameManager.company.researchCompleted.push(research);	
-															}			
-														}
-							});
-							
-		GDT.addResearchItem(
-							{
-								id: "00C70B07-AB3D-41F2-BCC0-788B5C47C344",
-								name: "God Trading".dlocalize(m_idMod),
-								v: 14,
-								canResearch: function (company) 
+									id: "BFFCE3f6-EFF7-4208-BA0D-BA5E8C74EC97",
+									name: "Trading V5".dlocalize(m_idMod),
+									pointsCost: 100,
+									duration: 16000,
+									cost: 400000,
+									canResearch: function (company) 
+									{
+										return inArrayElementWithId("39634EBF-1354-4738-99CD-CA0F4453B15C", GameManager.company.researchCompleted) != -1 // Research Trading V4 Done
+									},
+									category: "Trading",
+									categoryDisplayName: "Trading".dlocalize(m_idMod),
+									complete: function () 	{			
+																var research =  Research.getAllItems().filter(function (f) { return f.id === "BFFCE3f6-EFF7-4208-BA0D-BA5E8C74EC97";  });
+																if (research)
+																{
+																	GameManager.company.researchCompleted.push(research);	
+																}			
+															}
+								};
+		Research.SpecialItems.push(tradingResearchV5);
+		
+		var tradingResearchExpert =
 								{
-									return m_storedDatas.data["m_gainMoney"] >= 15000000 // Have gain 15M Cash with speculations MAYBE TO CHANGE
-								},
-								category: "Trading",
-								categoryDisplayName: "Trading".dlocalize(m_idMod),
-								complete: function () 	{			
-															var research =  Research.getAllItems().filter(function (f) { return f.id === "00C70B07-AB3D-41F2-BCC0-788B5C47C344";  });
-															if (research)
-															{
-																GameManager.company.researchCompleted.push(research);	
-															}			
-														}
-							});
+									id: "8E87EE16-F17C-4C1B-BEA9-75B431C76472",
+									name: "Expert Trading".dlocalize(m_idMod),
+									pointsCost: 150,
+									duration: 20000,
+									cost: 600000,
+									canResearch: function (company) 
+									{
+										return m_storedDatas.data["m_gainMoney"] >= 1000000 // Have gain 1M Cash with speculations
+									},
+									category: "Trading",
+									categoryDisplayName: "Trading".dlocalize(m_idMod),
+									complete: function () 	{			
+																var research =  Research.getAllItems().filter(function (f) { return f.id === "8E87EE16-F17C-4C1B-BEA9-75B431C76472";  });
+																if (research)
+																{
+																	GameManager.company.researchCompleted.push(research);	
+																}			
+															}
+								};
+		Research.SpecialItems.push(tradingResearchExpert);
+		
+		var tradingResearchMaster =
+								{
+									id: "05DD056A-59C2-47D1-93F3-8EEB0FA9364D",
+									name: "Master Trading".dlocalize(m_idMod),
+									pointsCost: 250,
+									duration: 25000,
+									cost: 1200000,
+									canResearch: function (company) 
+									{
+										return m_storedDatas.data["m_gainMoney"] >= 5000000 // Have gain 5M Cash with speculations MAYBE TO CHANGE
+									},
+									category: "Trading",
+									categoryDisplayName: "Trading".dlocalize(m_idMod),
+									complete: function () 	{			
+																var research =  Research.getAllItems().filter(function (f) { return f.id === "05DD056A-59C2-47D1-93F3-8EEB0FA9364D";  });
+																if (research)
+																{
+																	GameManager.company.researchCompleted.push(research);	
+																}			
+															}
+								};
+		Research.SpecialItems.push(tradingResearchMaster);
+		
+		var tradingResearchGod =
+								{
+									id: "00C70B07-AB3D-41F2-BCC0-788B5C47C344",
+									name: "God Trading".dlocalize(m_idMod),
+									pointsCost: 300,
+									duration: 30000,
+									cost: 1600000,
+									canResearch: function (company) 
+									{
+										return m_storedDatas.data["m_gainMoney"] >= 15000000 // Have gain 15M Cash with speculations MAYBE TO CHANGE
+									},
+									category: "Trading",
+									categoryDisplayName: "Trading".dlocalize(m_idMod),
+									complete: function () 	{			
+																var research =  Research.getAllItems().filter(function (f) { return f.id === "00C70B07-AB3D-41F2-BCC0-788B5C47C344";  });
+																if (research)
+																{
+																	GameManager.company.researchCompleted.push(research);	
+																}			
+															}
+								};
+		Research.SpecialItems.push(tradingResearchGod);
 	};
 	
 	
