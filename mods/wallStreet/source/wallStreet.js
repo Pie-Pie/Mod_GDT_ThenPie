@@ -324,6 +324,8 @@ function inArrayElementWithId(id, array)
 				if(result != 0) // Case not answer Yes
 					return;
 				
+				Achievements.activate(Achievements.fireTrader);
+				
 				m_storedDatas.data["m_haveTrader"] = false;
 				
 				var notif = new Notification(
@@ -534,6 +536,123 @@ function inArrayElementWithId(id, array)
 		Research.SpecialItems.push(tradingResearchGod);
 	};
 	
+	//////////////////////////////////////////////////////////////////////
+	/////////////////////////// Achievements /////////////////////////////
+	//////////////////////////////////////////////////////////////////////
+	wallStreet.initAchievements = function()
+	{
+		Achievements.unlockTrader = {
+										id: "28C7EB8D-BD98-4A66-8A12-AE5E536B3A52",
+										title: "Unlock the Trader".dlocalize(m_idMod),
+										description: "Do the research 'Trading V1' to unlock the Trader!".dlocalize(m_idMod),
+										tint: "#FFFF00",
+										value: 10,
+										hidden: true,
+										canEarnMultiple: false,
+										isAchieved: function () {
+																	var res = true;
+																	res = inArrayElementWithId("EFEF2F70-0A53-4DE8-8205-C124C6310C17", GameManager.company.researchCompleted) != -1; // Research Trading V1 Done
+																	return res;
+																}
+									};
+									
+		Achievements.tradingV5unlock = 	{
+										id: "65F11C82-C9CD-4F72-B3CF-6C9EDB5100BF",
+										title: "Trading Level 5".dlocalize(m_idMod),
+										description: "Reach Level 5 in Trading!".dlocalize(m_idMod),
+										tint: "#FFFF00",
+										value: 10,
+										hidden: true,
+										canEarnMultiple: false,
+										isAchieved: function () {
+																	var res = true;
+																	res = inArrayElementWithId("BFFCE3f6-EFF7-4208-BA0D-BA5E8C74EC97", GameManager.company.researchCompleted) != -1; // Research Trading V5 Done
+																	return res;
+																}
+									};
+		
+		Achievements.tradingGodunlock = {
+										id: "8FEA0DEC-46C8-4BA1-ADB8-C58B211FA60E",
+										title: "Trading God Level".dlocalize(m_idMod),
+										description: "Reach the God Level in Trading!".dlocalize(m_idMod),
+										tint: "#FFFF00",
+										value: 10,
+										hidden: true,
+										canEarnMultiple: false,
+										isAchieved: function () {
+																	var res = true;
+																	res = inArrayElementWithId("00C70B07-AB3D-41F2-BCC0-788B5C47C344", GameManager.company.researchCompleted) != -1; // Research Trading God Done
+																	return res;
+																}
+									};
+		
+		Achievements.hireTrader = 	{
+										id: "D867B4F0-F1E6-46B2-91D2-59E05697BF59",
+										title: "Hire a Trader".dlocalize(m_idMod),
+										description: "Hire you first Trader!".dlocalize(m_idMod),
+										tint: "#FFFF00",
+										value: 10,
+										hidden: true,
+										canEarnMultiple: false,
+										isAchieved: function () {
+																	return m_storedDatas.data["m_haveTrader"];
+																}
+									};
+									
+		Achievements.fireTrader = 	{
+										id: "09C19A1C-FBBC-4D30-A5AC-07E1FEB67836",
+										title: "Sadistic".dlocalize(m_idMod),
+										description: "Fire your Trader!".dlocalize(m_idMod),
+										tint: "#FF0000",
+										value: 10,
+										hidden: true,
+										canEarnMultiple: false
+									};
+									
+		Achievements.gainOneMillion = 	{
+										id: "56B63313-1B4C-4F93-A4E4-D9F65DDB4E49",
+										title: "The Million !".dlocalize(m_idMod),
+										description: "Earn 1M cash with the Trader.".dlocalize(m_idMod),
+										tint: "#FFFF00",
+										value: 10,
+										hidden: true,
+										canEarnMultiple: false,
+										isAchieved: function () {
+																	return m_storedDatas.data["m_gainMoney"] >= 1000000;
+																}
+									};
+					
+		Achievements.gainTenMillions = 	{
+										id: "FD15C23E-4754-47E4-88D7-4B1ECD0500D4",
+										title: "Ten Million !".dlocalize(m_idMod),
+										description: "Earn 10M cash with the Trader.".dlocalize(m_idMod),
+										tint: "#FFFF00",
+										value: 10,
+										hidden: true,
+										canEarnMultiple: false,
+										isAchieved: function () {
+																	return m_storedDatas.data["m_gainMoney"] >= 10000000;
+																}
+									};
+									
+		Achievements.gainOneBillion = 	{
+										id: "4032CB88-3AF7-47A7-BEBB-9EC10A25BCC2",
+										title: "The Billion !".dlocalize(m_idMod),
+										description: "Earn 1B cash with the Trader.".dlocalize(m_idMod),
+										tint: "#FFFF00",
+										value: 10,
+										hidden: true,
+										canEarnMultiple: false,
+										isAchieved: function () {
+																	return m_storedDatas.data["m_gainMoney"] >= 1000000000;
+																}
+									};
+		
+		// achievement to add :
+		// Maybe achievement win a certain amount of money in one time
+		// train trader
+		// fire the trader
+	}
 	
 	//////////////////////////////////////////////////////////////////////
 	/////////////////////////// Init Function ////////////////////////////
@@ -550,8 +669,13 @@ function inArrayElementWithId(id, array)
 		wallStreet.initEvents();
 		// Change behaviour of context menu according to the mod, (keep base behaviour)
 		wallStreet.customContextMenuBehaviour();
+		// Init achievements linked to the mod
+		wallStreet.initAchievements();
+		
 		
 		wallStreet.initPopup();
+		
+		
 		
 		//function for event manageTrader
 		/*function forEventManage1()
