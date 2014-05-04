@@ -62,6 +62,18 @@ function inArrayElementWithId(id, array)
 		if (!m_storedDatas.data["m_traderSalary"])
 			m_storedDatas.data["m_traderSalary"] = 35000;
 			
+		if (!m_storedDatas.data["m_traderLevel"])
+			m_storedDatas.data["m_traderLevel"] = 0;
+			
+		if (!m_storedDatas.data["m_traderBudget"])
+			m_storedDatas.data["m_traderBudget"] = 10000;
+		
+		if (!m_storedDatas.data["m_traderRisks"])
+			m_storedDatas.data["m_traderRisks"] = 1;
+			
+		if (!m_storedDatas.data["m_traderResearchLevel"])
+			m_storedDatas.data["m_traderResearchLevel"] = 0;
+			
 		if (!m_storedDatas.data["m_hireCost"])
 			m_storedDatas.data["m_hireCost"] = 100000;
 			
@@ -75,6 +87,63 @@ function inArrayElementWithId(id, array)
 
 		if (m_storedDatas.data["m_haveTrader"] && week %4 == 0)
 			GameManager.company.adjustCash(-m_storedDatas.data["m_traderSalary"], "Trader Salary".dlocalize(m_idMod));
+	}
+	
+	wallStreet.tradedActions = function()
+	{
+		var week = parseInt(GameManager.company.currentWeek.toString());
+
+		if (m_storedDatas.data["m_haveTrader"] && week %2 == 0)
+		{
+			if (wallStreet.tradingActionsSuccess(GameManager.company.getRandom()))	// If trader make benefits
+			{
+				var benefits = wallStreet.tradingBenefits();
+				m_storedDatas.data["m_gainMoney"] += benefits;
+				GameManager.company.adjustCash(benefits, "Trading Actions Benefits".dlocalize(m_idMod));
+			}
+			else
+			{
+				GameManager.company.adjustCash(-(m_storedDatas.data["m_traderBudget"]*m_storedDatas.data["m_traderRisks"]), "Trading Actions Fail".dlocalize(m_idMod));
+			}
+		}
+	}
+	
+	wallStreet.tradingActionsSuccess = function(proba)
+	{
+		var probMakeBenefits;
+		if (m_storedDatas.data["m_traderLevel"] < 5)
+		{
+			probMakeBenefits = (-0.3/5.0)*m_storedDatas.data["m_traderLevel"] + 0.9;
+		}
+		else
+		{
+			probMakeBenefits = (-0.4/5.0)*m_storedDatas.data["m_traderLevel"] + 1.0;
+		}
+
+		if (proba >= probMakeBenefits)
+			return true;
+		else
+			return false;
+	}
+	
+	wallStreet.tradingBenefits = function()
+	{
+		return (((wallStreet.getMaxMultiplicatorAccordingToRisks() - 1.05)/4.0)*m_storedDatas.data["m_traderRisks"] + (1.05 - ((wallStreet.getMaxMultiplicatorAccordingToRisks() - 1.05)/4.0)))*m_storedDatas.data["m_traderBudget"] - m_storedDatas.data["m_traderBudget"];
+	}
+	
+	wallStreet.getMaxMultiplicatorAccordingToRisks = function()
+	{
+		return (1.3/7.0)*m_storedDatas.data["m_traderResearchLevel"] + (1.2-(1.3/7.0));
+	}
+	
+	wallStreet.fireTrader = function()
+	{
+		Achievements.activate(Achievements.fireTrader);
+		m_storedDatas.data["m_haveTrader"] = false;
+		m_storedDatas.data["m_traderSalary"] = 35000;
+		m_storedDatas.data["m_traderLevel"] = 0;
+		m_storedDatas.data["m_traderBudget"] = 10000;
+		m_storedDatas.data["m_traderRisks"] = 1;
 	}
 	
 	//////////////////////////////////////////////////////////////////////
@@ -324,9 +393,7 @@ function inArrayElementWithId(id, array)
 				if(result != 0) // Case not answer Yes
 					return;
 				
-				Achievements.activate(Achievements.fireTrader);
-				
-				m_storedDatas.data["m_haveTrader"] = false;
+				wallStreet.fireTrader();
 				
 				var notif = new Notification(
 											{
@@ -363,6 +430,7 @@ function inArrayElementWithId(id, array)
 																if (research)
 																{
 																	GameManager.company.researchCompleted.push(research);
+																	m_storedDatas.data["m_traderResearchLevel"] += 1;
 																	// Notification
 																	var notif = new Notification({
 																									header: "Trading V1".dlocalize(m_idMod),
@@ -391,7 +459,8 @@ function inArrayElementWithId(id, array)
 																var research =  Research.getAllItems().filter(function (f) { return f.id === "A16052BB-8882-4741-ABDE-AE37B2E7968F";  });
 																if (research)
 																{
-																	GameManager.company.researchCompleted.push(research);	
+																	GameManager.company.researchCompleted.push(research);
+																	m_storedDatas.data["m_traderResearchLevel"] += 1;
 																}			
 															}
 								};
@@ -414,7 +483,8 @@ function inArrayElementWithId(id, array)
 																var research =  Research.getAllItems().filter(function (f) { return f.id === "325C03F2-5FF1-4D34-B993-AFFC32B2252F";  });
 																if (research)
 																{
-																	GameManager.company.researchCompleted.push(research);	
+																	GameManager.company.researchCompleted.push(research);
+																	m_storedDatas.data["m_traderResearchLevel"] += 1;
 																}			
 															}
 								};
@@ -437,7 +507,8 @@ function inArrayElementWithId(id, array)
 																var research =  Research.getAllItems().filter(function (f) { return f.id === "39634EBF-1354-4738-99CD-CA0F4453B15C";  });
 																if (research)
 																{
-																	GameManager.company.researchCompleted.push(research);	
+																	GameManager.company.researchCompleted.push(research);
+																	m_storedDatas.data["m_traderResearchLevel"] += 1;
 																}			
 															}
 								};
@@ -460,7 +531,8 @@ function inArrayElementWithId(id, array)
 																var research =  Research.getAllItems().filter(function (f) { return f.id === "BFFCE3f6-EFF7-4208-BA0D-BA5E8C74EC97";  });
 																if (research)
 																{
-																	GameManager.company.researchCompleted.push(research);	
+																	GameManager.company.researchCompleted.push(research);
+																	m_storedDatas.data["m_traderResearchLevel"] += 1;
 																}			
 															}
 								};
@@ -483,7 +555,8 @@ function inArrayElementWithId(id, array)
 																var research =  Research.getAllItems().filter(function (f) { return f.id === "8E87EE16-F17C-4C1B-BEA9-75B431C76472";  });
 																if (research)
 																{
-																	GameManager.company.researchCompleted.push(research);	
+																	GameManager.company.researchCompleted.push(research);
+																	m_storedDatas.data["m_traderResearchLevel"] += 1;
 																}			
 															}
 								};
@@ -506,7 +579,8 @@ function inArrayElementWithId(id, array)
 																var research =  Research.getAllItems().filter(function (f) { return f.id === "05DD056A-59C2-47D1-93F3-8EEB0FA9364D";  });
 																if (research)
 																{
-																	GameManager.company.researchCompleted.push(research);	
+																	GameManager.company.researchCompleted.push(research);
+																	m_storedDatas.data["m_traderResearchLevel"] += 1;
 																}			
 															}
 								};
@@ -529,7 +603,8 @@ function inArrayElementWithId(id, array)
 																var research =  Research.getAllItems().filter(function (f) { return f.id === "00C70B07-AB3D-41F2-BCC0-788B5C47C344";  });
 																if (research)
 																{
-																	GameManager.company.researchCompleted.push(research);	
+																	GameManager.company.researchCompleted.push(research);
+																	m_storedDatas.data["m_traderResearchLevel"] += 1;
 																}			
 															}
 								};
@@ -662,6 +737,8 @@ function inArrayElementWithId(id, array)
 		// Event to save and load mod datas
 		GDT.on(GDT.eventKeys.saves.loading, wallStreet.loadData);
 		GDT.on(GDT.eventKeys.gameplay.weekProceeded, wallStreet.traderSalaryLevy);
+		// Trading actions
+		GDT.on(GDT.eventKeys.gameplay.weekProceeded, wallStreet.tradedActions);
 		
 		// Init all research of the mod
 		wallStreet.initResearch();
