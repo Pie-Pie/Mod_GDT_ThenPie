@@ -79,8 +79,8 @@ GDT.addResearchItem(
         canResearch: function (company) {
             return LevelCalculator.getMissionLevel('Graphic') > 10  
         },
-        category: "4D",
-        categoryDisplayName: "4D".localize()
+        category: "Graphics",
+        categoryDisplayName: "Graphics".localize()
   });
   
   GDT.addResearchItem(
@@ -91,8 +91,8 @@ GDT.addResearchItem(
         canResearch: function (company) {
             return LevelCalculator.getMissionLevel('4D1') > 3  
         },
-        category: "4D",
-        categoryDisplayName: "4D".localize()
+        category: "Graphics",
+        categoryDisplayName: "Graphics".localize()
   });
   
   GDT.addResearchItem(
@@ -103,8 +103,8 @@ GDT.addResearchItem(
         canResearch: function (company) {
             return LevelCalculator.getMissionLevel('4D2') > 3  
         },
-        category: "4D",
-        categoryDisplayName: "4D".localize()
+        category: "Graphics",
+        categoryDisplayName: "Graphics".localize()
   });
   
   GDT.addResearchItem(
@@ -115,8 +115,8 @@ GDT.addResearchItem(
         canResearch: function (company) {
             return LevelCalculator.getMissionLevel('4D3') > 3  
         },
-        category: "4D",
-        categoryDisplayName: "4D".localize()
+        category: "Graphics",
+        categoryDisplayName: "Graphics".localize()
   });
   
   GDT.addResearchItem(
@@ -127,8 +127,8 @@ GDT.addResearchItem(
         canResearch: function (company) {
             return LevelCalculator.getMissionLevel('4D4') > 3  
         },
-        category: "4D",
-        categoryDisplayName: "4D".localize()
+        category: "Graphics",
+        categoryDisplayName: "Graphics".localize()
   });
   
   GDT.addResearchItem(
@@ -139,8 +139,8 @@ GDT.addResearchItem(
         canResearch: function (company) {
             return LevelCalculator.getMissionLevel('4D5') > 3  
         },
-        category: "4D",
-        categoryDisplayName: "4D".localize()
+        category: "Graphics",
+        categoryDisplayName: "Graphics".localize()
   });
   
   GDT.addResearchItem(
@@ -151,8 +151,8 @@ GDT.addResearchItem(
         canResearch: function (company) {
             return LevelCalculator.getMissionLevel('4D6') > 3 
         },
-        category: "4D",
-        categoryDisplayName: "4D".localize()
+        category: "Graphics",
+        categoryDisplayName: "Graphics".localize()
   });
   
   GDT.addResearchItem(
@@ -163,8 +163,8 @@ GDT.addResearchItem(
         canResearch: function (company) {
             return LevelCalculator.getMissionLevel('4D7') > 3 
         },
-        category: "4D",
-        categoryDisplayName: "4D".localize()
+        category: "Graphics",
+        categoryDisplayName: "Graphics".localize()
   });
   
   GDT.addResearchItem(
@@ -175,8 +175,8 @@ GDT.addResearchItem(
         canResearch: function (company) {
             return LevelCalculator.getMissionLevel('4D8') > 3 
         },
-        category: "4D",
-        categoryDisplayName: "4D".localize()
+        category: "Graphics",
+        categoryDisplayName: "Graphics".localize()
   });
   
   GDT.addResearchItem(
@@ -187,8 +187,8 @@ GDT.addResearchItem(
         canResearch: function (company) {
             return LevelCalculator.getMissionLevel('4D9') > 5
         },
-        category: "4D",
-        categoryDisplayName: "4D".localize()
+        category: "Graphics",
+        categoryDisplayName: "Graphics".localize()
   });
   
   //Ajout de niveaux superieux en 2D et 3D
@@ -196,14 +196,14 @@ GDT.addResearchItem(
   
   GDT.addResearchItem(
     {
-        id: "2D8",
-        name: "2D V8".localize(),
+        id: "Graphics: 2D Graphics V7",
+        name: "Graphics: 2D Graphics V8".localize(),
         v: 14,
         canResearch: function (company) {
-            return LevelCalculator.getMissionLevel('2D') > 10  
+            return LevelCalculator.getMissionLevel('Graphics: 2D Graphics V7') > 3
         },
-        category: "4D",
-        categoryDisplayName: "4D".localize()
+        category: "2D",
+        categoryDisplayName: "2D".localize()
   });
   
   
