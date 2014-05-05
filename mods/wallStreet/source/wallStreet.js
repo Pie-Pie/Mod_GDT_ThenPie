@@ -66,7 +66,7 @@ function inArrayElementWithId(id, array)
 			m_storedDatas.data["m_traderLevel"] = 0;
 			
 		if (!m_storedDatas.data["m_traderBudget"])
-			m_storedDatas.data["m_traderBudget"] = 10000;
+			m_storedDatas.data["m_traderBudget"] = 0;
 		
 		if (!m_storedDatas.data["m_traderRisks"])
 			m_storedDatas.data["m_traderRisks"] = 1;
@@ -91,8 +91,11 @@ function inArrayElementWithId(id, array)
 	
 	wallStreet.tradedActions = function()
 	{
+		if (m_storedDatas.data["m_traderBudget"] == 0)
+			return;
+			
 		var week = parseInt(GameManager.company.currentWeek.toString());
-
+		
 		if (m_storedDatas.data["m_haveTrader"] && week %2 == 0)
 		{
 			if (wallStreet.tradingActionsSuccess(GameManager.company.getRandom()))	// If trader make benefits
@@ -100,10 +103,18 @@ function inArrayElementWithId(id, array)
 				var benefits = wallStreet.tradingBenefits();
 				m_storedDatas.data["m_gainMoney"] += benefits;
 				GameManager.company.adjustCash(benefits, "Trading Actions Benefits".dlocalize(m_idMod));
+				
+				// Chance to win fans
+				wallStreet.winFans();
 			}
 			else
 			{
 				GameManager.company.adjustCash(-(m_storedDatas.data["m_traderBudget"]*m_storedDatas.data["m_traderRisks"]), "Trading Actions Fail".dlocalize(m_idMod));
+				// Chance to lose fans, but few percentage to wins fans with bad results
+				if(GameManager.company.getRandom() > 0.02)
+					wallStreet.loseFans()
+				else	// 2% 
+					wallStreet.winFansWithBadResults();
 			}
 		}
 	}
@@ -134,6 +145,66 @@ function inArrayElementWithId(id, array)
 	wallStreet.getMaxMultiplicatorAccordingToRisks = function()
 	{
 		return (1.3/7.0)*m_storedDatas.data["m_traderResearchLevel"] + (1.2-(1.3/7.0));
+	}
+	
+	wallStreet.winFans = function()
+	{
+		if (GameManager.company.getRandom() < 0.05)		// Good luck, Win fans
+		{
+			if (GameManager.company.getRandom() < 0.05)		// Very Good luck, Win fans
+			{
+				var percentage = 0;
+				do {
+					percentage = GameManager.company.getRandom();
+				} while(percentage > 0.5 && percentage < 0.05);	// Reasonable percentage
+				
+				var fansPercentage = GameManager.company.fans*percentage;
+				GameManager.company.adjustFans(Math.floor(fansPercentage));
+				//TODO NOTIF
+			}
+			else
+			{
+				GameManager.company.adjustFans(Math.floor(GameManager.company.getRandom()*1000));	// Gain a random number of fans
+				// TODO NOTIF
+			}
+		}
+	}
+	
+	wallStreet.loseFans = function()
+	{
+		if (GameManager.company.getRandom() < 0.05)		// Bad luck, Win fans
+		{
+			if (GameManager.company.getRandom() < 0.05)		// Very Bad luck, Win fans
+			{
+				var percentage = 0;
+				do {
+					percentage = GameManager.company.getRandom();
+				} while(percentage > 0.5 && percentage < 0.05);	// Reasonable percentage
+				
+				var fansPercentage = GameManager.company.fans*percentage;
+				if (GameManager.company.fans - fansPercentage >= 0)
+					GameManager.company.adjustFans(-Math.floor(fansPercentage));
+				else
+					GameManager.company.adjustFans(-GameManager.company.fans);
+				//TODO NOTIF
+			}
+			else
+			{
+				var fansLost = GameManager.company.getRandom()*1000;	// Lose a random number of fans
+				if (GameManager.company.fans - fansLost >= 0)
+					GameManager.company.adjustFans(-Math.floor(fansLost));
+				else
+					GameManager.company.adjustFans(-GameManager.company.fans);
+				// TODO NOTIF
+			}
+		}
+	}
+	
+	wallStreet.winFansWithBadResults = function()
+	{
+		var fansWin = GameManager.company.getRandom()*1000;	// Gain a random number of fans
+		GameManager.company.adjustFans(Math.floor(fansWin));
+		//TODO NOTIF
 	}
 	
 	wallStreet.fireTrader = function()
@@ -751,14 +822,6 @@ function inArrayElementWithId(id, array)
 		
 		
 		wallStreet.initPopup();
-		
-		
-		
-		//function for event manageTrader
-		/*function forEventManage1()
-		{*/
-		
-		//}
 	};
 	
 })();
