@@ -109,7 +109,8 @@ function inArrayElementWithId(id, array)
 			}
 			else
 			{
-				GameManager.company.adjustCash(-(m_storedDatas.data["m_traderBudget"]*m_storedDatas.data["m_traderRisks"]), "Trading Actions Fail".dlocalize(m_idMod));
+				var deficit = wallStreet.tradingDeficit();
+				GameManager.company.adjustCash(-deficit, "Trading Actions Fail".dlocalize(m_idMod));
 				// Chance to lose fans, but few percentage to wins fans with bad results
 				if(GameManager.company.getRandom() > 0.02)
 					wallStreet.loseFans()
@@ -139,7 +140,38 @@ function inArrayElementWithId(id, array)
 	
 	wallStreet.tradingBenefits = function()
 	{
-		return (((wallStreet.getMaxMultiplicatorAccordingToRisks() - 1.05)/4.0)*m_storedDatas.data["m_traderRisks"] + (1.05 - ((wallStreet.getMaxMultiplicatorAccordingToRisks() - 1.05)/4.0)))*m_storedDatas.data["m_traderBudget"] - m_storedDatas.data["m_traderBudget"];
+		var benefits = (((wallStreet.getMaxMultiplicatorAccordingToRisks() - 1.05)/4.0)*m_storedDatas.data["m_traderRisks"] + (1.05 - ((wallStreet.getMaxMultiplicatorAccordingToRisks() - 1.05)/4.0)))*m_storedDatas.data["m_traderBudget"] - m_storedDatas.data["m_traderBudget"];
+		
+		// Additional changes to wins or lose much money
+		var percentage = 0;
+		do {
+			percentage = GameManager.company.getRandom();
+		} while(percentage < 0.01 || percentage > 0.2);	// Reasonable percentage
+		
+		if (GameManager.company.getRandom() < 0.75)	//	75% to win more
+			benefits = benefits + benefits*percentage;
+		else
+			benefits = benefits - benefits*percentage;
+		
+		return benefits;
+	}
+	
+	wallStreet.tradingDeficit = function()
+	{
+		var deficit = (m_storedDatas.data["m_traderBudget"]*m_storedDatas.data["m_traderRisks"]);
+		
+		// Additional changes to wins or lose much money
+		var percentage = 0;
+		do {
+			percentage = GameManager.company.getRandom();
+		} while(percentage < 0.01 || percentage > 0.2);	// Reasonable percentage
+		
+		if (GameManager.company.getRandom() < 0.5)	//	50% to lose more, 50 % to lose less
+			deficit = deficit + deficit*percentage;
+		else
+			deficit = deficit - deficit*percentage;
+		
+		return deficit;
 	}
 	
 	wallStreet.getMaxMultiplicatorAccordingToRisks = function()
@@ -156,7 +188,7 @@ function inArrayElementWithId(id, array)
 				var percentage = 0;
 				do {
 					percentage = GameManager.company.getRandom();
-				} while(percentage > 0.5 && percentage < 0.05);	// Reasonable percentage
+				} while(percentage > 0.5 || percentage < 0.05);	// Reasonable percentage
 				
 				var fansPercentage = GameManager.company.fans*percentage;
 				GameManager.company.adjustFans(Math.floor(fansPercentage));
@@ -179,7 +211,7 @@ function inArrayElementWithId(id, array)
 				var percentage = 0;
 				do {
 					percentage = GameManager.company.getRandom();
-				} while(percentage > 0.5 && percentage < 0.05);	// Reasonable percentage
+				} while(percentage > 0.5 || percentage < 0.05);	// Reasonable percentage
 				
 				var fansPercentage = GameManager.company.fans*percentage;
 				if (GameManager.company.fans - fansPercentage >= 0)
