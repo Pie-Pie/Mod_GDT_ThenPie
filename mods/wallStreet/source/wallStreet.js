@@ -45,6 +45,9 @@ function inArrayElementWithId(id, array)
 	// Mod variables
 	var m_idMod = "wallStreet";
 	var m_storedDatas;	// Datas used by the mod
+	var m_ceilingPublisher = 1000000000;
+	var m_hireCost = 100000;
+	var m_publisherCost = 200000000;
 	
 	//////////////////////////////////////////////////////////////////////
 	////////////////////////// Other functions ///////////////////////////
@@ -58,6 +61,9 @@ function inArrayElementWithId(id, array)
 			
 		if (!m_storedDatas.data["m_haveTrader"])
 			m_storedDatas.data["m_haveTrader"] = false;
+			
+		if (!m_storedDatas.data["m_isPublisher"])
+			m_storedDatas.data["m_isPublisher"] = false;
 			
 		if (!m_storedDatas.data["m_traderSalary"])
 			m_storedDatas.data["m_traderSalary"] = 35000;
@@ -74,9 +80,6 @@ function inArrayElementWithId(id, array)
 		if (!m_storedDatas.data["m_traderResearchLevel"])
 			m_storedDatas.data["m_traderResearchLevel"] = 0;
 			
-		if (!m_storedDatas.data["m_hireCost"])
-			m_storedDatas.data["m_hireCost"] = 100000;
-			
 		if (!m_storedDatas.data["m_gainMoney"])
 			m_storedDatas.data["m_gainMoney"] = 0;
 	}
@@ -84,7 +87,7 @@ function inArrayElementWithId(id, array)
 	wallStreet.traderSalaryLevy = function()
 	{
 		var week = parseInt(GameManager.company.currentWeek.toString());
-
+		
 		if (m_storedDatas.data["m_haveTrader"] && week %4 == 0)
 			GameManager.company.adjustCash(-m_storedDatas.data["m_traderSalary"], "Trader Salary".dlocalize(m_idMod));
 	}
@@ -249,6 +252,18 @@ function inArrayElementWithId(id, array)
 		m_storedDatas.data["m_traderRisks"] = 1;
 	}
 	
+	wallStreet.becomePublisher = function()
+	{
+		m_storedDatas.data["m_isPublisher"] = true;
+		GameManager.company.adjustCash(-m_publisherCost, "Enter in Stock Exchange".dlocalize(m_idMod));
+	}
+	
+	wallStreet.completeHireTrader = function()
+	{
+		m_storedDatas.data["m_haveTrader"] = true;
+		GameManager.company.adjustCash(-m_hireCost, "Hire Trader".dlocalize(m_idMod));	
+	}
+	
 	//////////////////////////////////////////////////////////////////////
 	//////////////////////////////// GUI /////////////////////////////////
 	//////////////////////////////////////////////////////////////////////
@@ -390,6 +405,28 @@ function inArrayElementWithId(id, array)
 						items.splice(1, 0, allocateTraderBudgetItem);
 					}
 				}
+				
+				// If you are not a already a publisher
+				if(!m_storedDatas.data["m_isPublisher"])
+				{
+					// If we have the cash and a trader
+					if(m_storedDatas.data["m_haveTrader"] && GameManager.company.cash >= m_ceilingPublisher)
+					{
+						// Create Item for the context menu
+						var becomePublisherItem =
+						{
+							label: "Become Publisher".dlocalize(m_idMod),
+							action: function()
+							{
+								Sound.click();
+								GameManager.company.notifications.insertAt(0, wallStreet.bePublisher.getNotification());
+								GameManager.resume(true);
+							}
+						};
+						// Insert becomePublisherItem at first pos in context menu
+						items.splice(0, 0, becomePublisherItem);
+					}
+				}
 			}
 			
 			// Call to the old function to keep the same behaviour
@@ -443,7 +480,7 @@ function inArrayElementWithId(id, array)
 										{
 											sourceId: "8FFA272-EF44-44B0-B6F2-9EEE69957996",
 											header: "Hire Trader".dlocalize(m_idMod),
-											text: "Do you want to hire a Trader ?\n\nHire Cost : ".dlocalize(m_idMod) + (m_storedDatas.data["m_hireCost"]/1000).toString() + "K\nBase Salary : ".dlocalize(m_idMod) + (m_storedDatas.data["m_traderSalary"]/1000).toString() + "K".dlocalize(m_idMod),
+											text: "Do you want to hire a Trader ?\n\nHire Cost : ".dlocalize(m_idMod) + (m_hireCost/1000).toString() + "K\nBase Salary : ".dlocalize(m_idMod) + (m_storedDatas.data["m_traderSalary"]/1000).toString() + "K".dlocalize(m_idMod),
 											options: ["Yes".dlocalize(m_idMod), "No".dlocalize(m_idMod)]
 										});
 			},
@@ -454,7 +491,7 @@ function inArrayElementWithId(id, array)
 					return;
 				
 				// Hire Trader Cost
-				GameManager.company.adjustCash(-m_storedDatas.data["m_hireCost"], "Hire Trader".dlocalize(m_idMod));
+				wallStreet.completeHireTrader();
 				
 				var notif = new Notification(
 											{
@@ -462,13 +499,10 @@ function inArrayElementWithId(id, array)
 												text: "You have successfully hire a Trader.\n\nYou can now train him and allocate a budget that he can use to do some speculations!".dlocalize(m_idMod),
 											});
 				
-				m_storedDatas.data["m_haveTrader"] = true;
-				
 				GameManager.company.notifications.push(notif);
 			}
 		};
 		GDT.addEvent(wallStreet.hireTraderEvent);
-		
 		
 		// Event to Fire a Trader (Generate a dialog window)
 		wallStreet.fireTraderEvent =
@@ -508,6 +542,68 @@ function inArrayElementWithId(id, array)
 			}
 		};
 		GDT.addEvent(wallStreet.fireTraderEvent);
+		
+		// Event to become an publisher and enter in stock exchange
+		wallStreet.becomePublisherEvent =
+		{
+			id: "151BCB5D-A948-4A6b-A944-2B71327EC9B8",
+			
+			maxTriggers: 1,
+			
+			trigger: function()
+			{
+				return GameManager.company.cash >= m_ceilingPublisher;	// 1000M cash
+			},
+			
+			getNotification: function()
+			{
+				return new Notification(
+										{
+											sourceId: "151BCB5D-A948-4A6b-A944-2B71327EC9B8",
+											header: "Become a Publisher !".dlocalize(m_idMod),
+											text: "Congratulations!\nYou now have sufficient capital to become yourself a publisher of video games and enter in stock exchange.{n}To become a Publisher, you must have a Trader, and see you CEO.".dlocalize(m_idMod),
+										});
+			}
+		};
+		GDT.addEvent(wallStreet.becomePublisherEvent);
+		
+		wallStreet.bePublisher = 
+		{
+			id: "60F74EF2-2281-4B5F-AB56-909C46857297",
+			trigger: function()
+			{
+				return false;
+			},
+			
+			getNotification: function()
+			{
+				return new Notification(
+										{
+											sourceId: "60F74EF2-2281-4B5F-AB56-909C46857297",
+											header: "Become a Publisher".dlocalize(m_idMod),
+											text: "Do you want to become a Publisher ?\n\nCost : ".dlocalize(m_idMod) + (m_publisherCost/1000000).toString() + "M".dlocalize(m_idMod),
+											options: ["Yes".dlocalize(m_idMod), "No".dlocalize(m_idMod)]
+										});
+			},
+			
+			complete: function(result)
+			{
+				if(result != 0) // Case not answer Yes
+					return;
+				
+				// Become a Publisher
+				wallStreet.becomePublisher();
+				
+				var notif = new Notification(
+											{
+												header: GameManager.company.name + " Publisher !".dlocalize(m_idMod),
+												text: "Congratulations!\nNow you are a Publisher.\n\nWith this new state you will have some new opportunities!".dlocalize(m_idMod),
+											});
+				
+				GameManager.company.notifications.push(notif);
+			}
+		};
+		GDT.addEvent(wallStreet.bePublisher);
 	};
 	
 	//////////////////////////////////////////////////////////////////////
