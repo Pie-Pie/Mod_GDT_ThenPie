@@ -48,6 +48,7 @@ function inArrayElementWithId(id, array)
 	var m_ceilingPublisher = 1000000000;
 	var m_hireCost = 100000;
 	var m_publisherCost = 200000000;
+	var m_salary = 35;
 	
 	//////////////////////////////////////////////////////////////////////
 	////////////////////////// Other functions ///////////////////////////
@@ -308,17 +309,24 @@ function inArrayElementWithId(id, array)
 			
 		UI.closeModal();*/
 		var res = $("#resources");
-		res.append("<div id=\"managePopup\" class=\"tallWindow windowBorder\"><div id=\"salaryLabel\" class=\"windowCostLabel\">" + "Salary:".dlocalize(m_idMod) + " 35K</div><div class=\"centeredButtonWrapper\" style=\"margin-top: 20px\"><h2>" + "Salary: ".dlocalize(m_idMod) + "</h2><div id=\"salarySlider\">			</div></div></div>");
+		//class=\"tallWindow windowBorder\"
+		res.append("<div id=\"managePopup\" class=\"notificationThreeOptions windowBorder\"><div class=\"windowTitle\">" + "Manage Trader".dlocalize(m_idMod) + "</div><div id=\"salarySlider\" class=\"ui-slider-range\" style=\"margin: auto; top: 20px; width: 450px;\">	<div id=\"salaryLabel\" class=\"windowCostLabel\" style=\"width: auto; top:10px;\">	</div></div></div>");
+		
+		$("#salaryLabel").append("Salary: " + m_salary + "K");
 		
 		$("#salarySlider").slider(
 		{
 			min: 0,
 			max: 500,
 			value: 35,
-			step: 10,
+			step: 5,
+			animate: "fast",
 			slide: function(event, ui)
 			{
-				//alert($("#salarySlider").slider("value"));
+				$("#advSpyBudgetSlider").slider("value", ui.value);
+				m_salary = ui.value;
+				$("#salaryLabel").empty();
+				$("#salaryLabel").append("Salary: " + m_salary + "K");
 			}
 		});
 	}
@@ -947,7 +955,6 @@ function inArrayElementWithId(id, array)
 		wallStreet.customContextMenuBehaviour();
 		// Init achievements linked to the mod
 		wallStreet.initAchievements();
-		
 		
 		wallStreet.initPopup();
 	};
