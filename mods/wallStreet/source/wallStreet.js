@@ -85,6 +85,10 @@ function inArrayElementWithId(id, array)
 			m_storedDatas.data["m_gainMoney"] = 0;
 	}
 	
+	//////////////////////////////////////////////////////////////////////
+	///////////////////////// Trading Management /////////////////////////
+	//////////////////////////////////////////////////////////////////////
+	
 	wallStreet.traderSalaryLevy = function()
 	{
 		var week = parseInt(GameManager.company.currentWeek.toString());
@@ -110,6 +114,8 @@ function inArrayElementWithId(id, array)
 				
 				// Chance to win fans
 				wallStreet.winFans();
+				// Chance to gain hype if a game is in development
+				wallStreet.gainHype();
 			}
 			else
 			{
@@ -117,7 +123,11 @@ function inArrayElementWithId(id, array)
 				GameManager.company.adjustCash(-deficit, "Trading Actions Fail".dlocalize(m_idMod));
 				// Chance to lose fans, but few percentage to wins fans with bad results
 				if(GameManager.company.getRandom() > 0.02)
-					wallStreet.loseFans()
+				{
+					wallStreet.loseFans();
+					// Chance to lose hype if a game is in development
+					wallStreet.loseHype();
+				}
 				else	// 2% 
 					wallStreet.winFansWithBadResults();
 			}
@@ -253,16 +263,45 @@ function inArrayElementWithId(id, array)
 		m_storedDatas.data["m_traderRisks"] = 1;
 	}
 	
+	wallStreet.completeHireTrader = function()
+	{
+		m_storedDatas.data["m_haveTrader"] = true;
+		GameManager.company.adjustCash(-m_hireCost, "Hire Trader".dlocalize(m_idMod));	
+	}
+	
 	wallStreet.becomePublisher = function()
 	{
 		m_storedDatas.data["m_isPublisher"] = true;
 		GameManager.company.adjustCash(-m_publisherCost, "Enter in Stock Exchange".dlocalize(m_idMod));
 	}
 	
-	wallStreet.completeHireTrader = function()
+	wallStreet.gainHype = function()
 	{
-		m_storedDatas.data["m_haveTrader"] = true;
-		GameManager.company.adjustCash(-m_hireCost, "Hire Trader".dlocalize(m_idMod));	
+		if (GameManager.company.isGameProgressBetween(0.2, 0.9))	// Game in development
+		{
+			if (GameManager.company.getRandom() <= 0.25)	// 25% chance to win a bonus
+			{
+				GameManager.company.adjustHype(5 + 50 * company.getRandom());	//increase hype between 5 and 55.
+				// TODO NOTIF
+			}
+		}
+	}
+	
+	wallStreet.loseHype = function()
+	{
+		if (GameManager.company.isGameProgressBetween(0.2, 0.9))	// Game in development
+		{
+			if (GameManager.company.getRandom() <= 0.25)	// 25% chance to have a malus
+			{
+				// decrease hype between 5 and 55.
+				var lostHype = 5 + 50 * company.getRandom();
+				if (GameManager.company.hype - lostHype >= 0)
+					GameManager.company.adjustHype(-Math.floor(lostHype));
+				else
+					GameManager.company.adjustHype(-GameManager.company.hype);	
+				// TODO NOTIF
+			}
+		}
 	}
 	
 	//////////////////////////////////////////////////////////////////////
@@ -930,10 +969,22 @@ function inArrayElementWithId(id, array)
 																}
 									};
 		
+		Achievements.becomePublisher = 	{
+										id: "27E5f6ED-BB12-473C-8C3B-FA86FD0838C1",
+										title: "Publisher !".dlocalize(m_idMod),
+										description: "Become an independent Publisher and enter in stock exchange.".dlocalize(m_idMod),
+										tint: "#FFFF00",
+										value: 10,
+										hidden: true,
+										canEarnMultiple: false,
+										isAchieved: function () {
+																	return m_storedDatas.data["m_isPublisher"];
+																}
+									};
+		
 		// achievement to add :
 		// Maybe achievement win a certain amount of money in one time
 		// train trader
-		// fire the trader
 	}
 	
 	//////////////////////////////////////////////////////////////////////
