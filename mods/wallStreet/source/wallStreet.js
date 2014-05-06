@@ -50,6 +50,15 @@ function inArrayElementWithId(id, array)
 	var m_publisherCost = 200000000;
 	var m_salary = 35;
 	
+	// List of notifications
+	var listWinFans;
+	var listFabulousWinFans;
+	var listLostFans;
+	var listHugeLostFans;
+	var listWinsWithBadResultsFans;
+	var listGainHype;
+	var listLostHype;
+	
 	//////////////////////////////////////////////////////////////////////
 	////////////////////////// Other functions ///////////////////////////
 	//////////////////////////////////////////////////////////////////////
@@ -88,7 +97,6 @@ function inArrayElementWithId(id, array)
 	//////////////////////////////////////////////////////////////////////
 	///////////////////////// Trading Management /////////////////////////
 	//////////////////////////////////////////////////////////////////////
-	
 	wallStreet.traderSalaryLevy = function()
 	{
 		var week = parseInt(GameManager.company.currentWeek.toString());
@@ -206,12 +214,14 @@ function inArrayElementWithId(id, array)
 				
 				var fansPercentage = GameManager.company.fans*percentage;
 				GameManager.company.adjustFans(Math.floor(fansPercentage));
-				//TODO NOTIF
+				// Select a notification and display it
+				wallStreet.getAFabulousWinFansNotification();
 			}
 			else
 			{
 				GameManager.company.adjustFans(Math.floor(GameManager.company.getRandom()*1000));	// Gain a random number of fans
-				// TODO NOTIF
+				// Select a notification and display it
+				wallStreet.getAWinFansNotification();
 			}
 		}
 	}
@@ -232,7 +242,9 @@ function inArrayElementWithId(id, array)
 					GameManager.company.adjustFans(-Math.floor(fansPercentage));
 				else
 					GameManager.company.adjustFans(-GameManager.company.fans);
-				//TODO NOTIF
+				
+				// Select a notification and display it
+				wallStreet.getAHugeLostFansNotification();
 			}
 			else
 			{
@@ -241,7 +253,9 @@ function inArrayElementWithId(id, array)
 					GameManager.company.adjustFans(-Math.floor(fansLost));
 				else
 					GameManager.company.adjustFans(-GameManager.company.fans);
-				// TODO NOTIF
+				
+				// Select a notification and display it
+				wallStreet.getALostFansNotification();
 			}
 		}
 	}
@@ -250,7 +264,9 @@ function inArrayElementWithId(id, array)
 	{
 		var fansWin = GameManager.company.getRandom()*1000;	// Gain a random number of fans
 		GameManager.company.adjustFans(Math.floor(fansWin));
-		//TODO NOTIF
+		
+		// Select a notification and display it
+		wallStreet.getAWinFansWithLostNotification();
 	}
 	
 	wallStreet.fireTrader = function()
@@ -282,7 +298,9 @@ function inArrayElementWithId(id, array)
 			if (GameManager.company.getRandom() <= 0.25)	// 25% chance to win a bonus
 			{
 				GameManager.company.adjustHype(5 + 50 * company.getRandom());	//increase hype between 5 and 55.
-				// TODO NOTIF
+				
+				// Select a notification and display it
+				wallStreet.getAWinHypeNotification();
 			}
 		}
 	}
@@ -299,9 +317,138 @@ function inArrayElementWithId(id, array)
 					GameManager.company.adjustHype(-Math.floor(lostHype));
 				else
 					GameManager.company.adjustHype(-GameManager.company.hype);	
-				// TODO NOTIF
+				
+				// Select a notification and display it
+				wallStreet.getALostHypeNotification();
 			}
 		}
+	}
+	
+	//////////////////////////////////////////////////////////////////////
+	/////////////////////////// Notifications ////////////////////////////
+	//////////////////////////////////////////////////////////////////////
+	wallStreet.getAFabulousWinFansNotification = function()
+	{
+		var notif = wallStreet.selectNotifInList(listFabulousWinFans);
+				
+		GameManager.company.notifications.push(notif);
+	}
+	
+	wallStreet.getAWinFansNotification = function()
+	{
+		var notif = wallStreet.selectNotifInList(listWinFans);
+				
+		GameManager.company.notifications.push(notif);
+	}
+	
+	wallStreet.getAHugeLostFansNotification = function()
+	{
+		var notif = wallStreet.selectNotifInList(listHugeLostFans);
+				
+		GameManager.company.notifications.push(notif);
+	}
+	
+	wallStreet.getALostFansNotification = function()
+	{
+		var notif = wallStreet.selectNotifInList(listLostFans);
+				
+		GameManager.company.notifications.push(notif);
+	}
+	
+	wallStreet.getAWinFansWithLostNotification = function()
+	{
+		var notif = wallStreet.selectNotifInList(listWinsWithBadResultsFans);
+				
+		GameManager.company.notifications.push(notif);
+	}
+	
+	wallStreet.getAWinHypeNotification = function()
+	{
+		var notif = wallStreet.selectNotifInList(listGainHype);
+				
+		GameManager.company.notifications.push(notif);
+	}
+	
+	wallStreet.getALostHypeNotification = function()
+	{
+		var notif = wallStreet.selectNotifInList(listLostHype);
+				
+		GameManager.company.notifications.push(notif);
+	}
+	
+	wallStreet.selectNotifInList = function(list)
+	{
+		if (!list)
+			return undefined;
+			
+		var listNotifLenght = list.length;
+		if (listNotifLenght == 0)
+			return undefined;
+			
+		var probEachNotif = 1/listNotifLenght;
+		var prob = probEachNotif;
+		var cumulatedProb = new Array();
+		for (var i = 0 ; i < listNotifLenght ; i += 1)
+		{
+			cumulatedProb.push(prob);
+			prob += probEachNotif;
+		}
+		
+		var randomProb = GameManager.company.getRandom();
+		var index;
+		for (var i = 0 ; i < listNotifLenght ; i += 1)
+		{
+			if (randomProb > cumulatedProb[i])
+				continue;
+			else
+			{
+				index = i;
+				break;
+			}
+		}
+		
+		var notif = new Notification(
+									{
+										header: list[index][0],
+										text: list[index][1]
+									});
+		
+		return notif;
+	}
+	
+	wallStreet.initNotificationsLists = function()
+	{
+		// TODO init lists (with .dlocalize(m_idMod))
+		// ex : var items = [[1,2],[3,4],[5,6]];
+		
+		// Init list of notifications [header, text]
+		listWinFans = [
+						// TODO
+						];
+						
+		listFabulousWinFans = [
+								// TODO
+								];
+						
+		listLostFans = [
+						// TODO
+						];
+						
+		listHugeLostFans = [
+							// TODO
+							];
+						
+		listWinsWithBadResultsFans = [
+										// TODO
+										];
+						
+		listGainHype = [
+						// TODO
+						];
+						
+		listLostHype = [
+						// TODO
+						];
 	}
 	
 	//////////////////////////////////////////////////////////////////////
@@ -1002,10 +1149,12 @@ function inArrayElementWithId(id, array)
 		wallStreet.initResearch();
 		// Init all events of the mod
 		wallStreet.initEvents();
-		// Change behaviour of context menu according to the mod, (keep base behaviour)
-		wallStreet.customContextMenuBehaviour();
 		// Init achievements linked to the mod
 		wallStreet.initAchievements();
+		// Init lists of notifications used by the mod
+		wallStreet.initNotificationsLists();
+		// Change behaviour of context menu according to the mod, (keep base behaviour)
+		wallStreet.customContextMenuBehaviour();
 		
 		wallStreet.initPopup();
 	};
