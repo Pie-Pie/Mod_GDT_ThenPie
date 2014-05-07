@@ -92,6 +92,9 @@ function inArrayElementWithId(id, array)
 			
 		if (!m_storedDatas.data["m_gainMoney"])
 			m_storedDatas.data["m_gainMoney"] = 0;
+			
+		if (!m_storedDatas.data["m_bestDeal"])
+			m_storedDatas.data["m_bestDeal"] = 0;
 	}
 	
 	//////////////////////////////////////////////////////////////////////
@@ -118,6 +121,8 @@ function inArrayElementWithId(id, array)
 			{
 				var benefits = wallStreet.tradingBenefits();
 				m_storedDatas.data["m_gainMoney"] += benefits;
+				if (m_storedDatas.data["m_bestDeal"] < benefits)
+					m_storedDatas.data["m_bestDeal"] = benefits;
 				GameManager.company.adjustCash(benefits, "Trading Actions Benefits".dlocalize(m_idMod));
 				
 				// Chance to win fans
@@ -1129,9 +1134,57 @@ function inArrayElementWithId(id, array)
 																}
 									};
 		
-		// achievement to add :
-		// Maybe achievement win a certain amount of money in one time
-		// train trader
+		Achievements.theGoodDeal = 	{
+										id: "67E0B844-37EF-4813-9E6B-32FD05931A66",
+										title: "First Deal !".dlocalize(m_idMod),
+										description: "Make your first good deal with your Trader.".dlocalize(m_idMod),
+										tint: "#FFFF00",
+										value: 10,
+										hidden: true,
+										canEarnMultiple: false,
+										isAchieved: function () {
+																	return m_storedDatas.data["m_bestDeal"] > 0;
+																}
+									};
+		
+		Achievements.theGoodDeal = 	{
+										id: "766160F8-D92C-4745-AA17-4FDE107BD9A0",
+										title: "The Good Deal !".dlocalize(m_idMod),
+										description: "Make, with Trader's speculations, in one time, a benefit of 100M.".dlocalize(m_idMod),
+										tint: "#FFFF00",
+										value: 10,
+										hidden: true,
+										canEarnMultiple: false,
+										isAchieved: function () {
+																	return m_storedDatas.data["m_bestDeal"] >= 100000000;
+																}
+									};
+		
+		Achievements.trainingTrader = 	{
+										id: "F6E40A3D-2EB7-4206-855F-E75D8E4EFF0C",
+										title: "Train Trader !".dlocalize(m_idMod),
+										description: "Train your Trader for the first time.".dlocalize(m_idMod),
+										tint: "#FFFF00",
+										value: 10,
+										hidden: true,
+										canEarnMultiple: false,
+										isAchieved: function () {
+																	return m_storedDatas.data["m_traderLevel"] >= 1;
+																}
+									};
+		
+		Achievements.trainHard = 	{
+										id: "83D55EA7-8E92-4F14-B5A8-05883CFD8F27",
+										title: "Train Hard".dlocalize(m_idMod),
+										description: "Reach the maximum training level with your Trader.".dlocalize(m_idMod),
+										tint: "#FFFF00",
+										value: 10,
+										hidden: true,
+										canEarnMultiple: false,
+										isAchieved: function () {
+																	return m_storedDatas.data["m_traderLevel"] >= 10;
+																}
+									};
 	}
 	
 	//////////////////////////////////////////////////////////////////////
