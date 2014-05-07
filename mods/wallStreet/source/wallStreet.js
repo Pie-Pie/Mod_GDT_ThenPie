@@ -49,6 +49,15 @@ function inArrayElementWithId(id, array)
 	var m_hireCost = 100000;
 	var m_publisherCost = 200000000;
 	
+	// List of notifications
+	var listWinFans;
+	var listFabulousWinFans;
+	var listLostFans;
+	var listHugeLostFans;
+	var listWinsWithBadResultsFans;
+	var listGainHype;
+	var listLostHype;
+	
 	//////////////////////////////////////////////////////////////////////
 	////////////////////////// Other functions ///////////////////////////
 	//////////////////////////////////////////////////////////////////////
@@ -82,6 +91,9 @@ function inArrayElementWithId(id, array)
 			
 		if (!m_storedDatas.data["m_gainMoney"])
 			m_storedDatas.data["m_gainMoney"] = 0;
+			
+		if (!m_storedDatas.data["m_bestDeal"])
+			m_storedDatas.data["m_bestDeal"] = 0;
 			
 		//first init for the budget label and slider
 		$("#budgetSlider").slider("value", m_storedDatas.data["m_traderBudget"]);
@@ -121,6 +133,9 @@ function inArrayElementWithId(id, array)
 		}
 	}
 	
+	//////////////////////////////////////////////////////////////////////
+	///////////////////////// Trading Management /////////////////////////
+	//////////////////////////////////////////////////////////////////////
 	wallStreet.traderSalaryLevy = function()
 	{
 		var week = parseInt(GameManager.company.currentWeek.toString());
@@ -142,10 +157,14 @@ function inArrayElementWithId(id, array)
 			{
 				var benefits = wallStreet.tradingBenefits();
 				m_storedDatas.data["m_gainMoney"] += benefits;
+				if (m_storedDatas.data["m_bestDeal"] < benefits)
+					m_storedDatas.data["m_bestDeal"] = benefits;
 				GameManager.company.adjustCash(benefits, "Trading Actions Benefits".dlocalize(m_idMod));
 				
 				// Chance to win fans
 				wallStreet.winFans();
+				// Chance to gain hype if a game is in development
+				wallStreet.gainHype();
 			}
 			else
 			{
@@ -153,7 +172,11 @@ function inArrayElementWithId(id, array)
 				GameManager.company.adjustCash(-deficit, "Trading Actions Fail".dlocalize(m_idMod));
 				// Chance to lose fans, but few percentage to wins fans with bad results
 				if(GameManager.company.getRandom() > 0.02)
-					wallStreet.loseFans()
+				{
+					wallStreet.loseFans();
+					// Chance to lose hype if a game is in development
+					wallStreet.loseHype();
+				}
 				else	// 2% 
 					wallStreet.winFansWithBadResults();
 			}
@@ -232,12 +255,14 @@ function inArrayElementWithId(id, array)
 				
 				var fansPercentage = GameManager.company.fans*percentage;
 				GameManager.company.adjustFans(Math.floor(fansPercentage));
-				//TODO NOTIF
+				// Select a notification and display it
+				wallStreet.getAFabulousWinFansNotification();
 			}
 			else
 			{
 				GameManager.company.adjustFans(Math.floor(GameManager.company.getRandom()*1000));	// Gain a random number of fans
-				// TODO NOTIF
+				// Select a notification and display it
+				wallStreet.getAWinFansNotification();
 			}
 		}
 	}
@@ -258,7 +283,9 @@ function inArrayElementWithId(id, array)
 					GameManager.company.adjustFans(-Math.floor(fansPercentage));
 				else
 					GameManager.company.adjustFans(-GameManager.company.fans);
-				//TODO NOTIF
+				
+				// Select a notification and display it
+				wallStreet.getAHugeLostFansNotification();
 			}
 			else
 			{
@@ -267,7 +294,9 @@ function inArrayElementWithId(id, array)
 					GameManager.company.adjustFans(-Math.floor(fansLost));
 				else
 					GameManager.company.adjustFans(-GameManager.company.fans);
-				// TODO NOTIF
+				
+				// Select a notification and display it
+				wallStreet.getALostFansNotification();
 			}
 		}
 	}
@@ -276,7 +305,9 @@ function inArrayElementWithId(id, array)
 	{
 		var fansWin = GameManager.company.getRandom()*1000;	// Gain a random number of fans
 		GameManager.company.adjustFans(Math.floor(fansWin));
-		//TODO NOTIF
+		
+		// Select a notification and display it
+		wallStreet.getAWinFansWithLostNotification();
 	}
 	
 	wallStreet.fireTrader = function()
@@ -289,16 +320,176 @@ function inArrayElementWithId(id, array)
 		m_storedDatas.data["m_traderRisks"] = 1;
 	}
 	
+	wallStreet.completeHireTrader = function()
+	{
+		m_storedDatas.data["m_haveTrader"] = true;
+		GameManager.company.adjustCash(-m_hireCost, "Hire Trader".dlocalize(m_idMod));	
+	}
+	
 	wallStreet.becomePublisher = function()
 	{
 		m_storedDatas.data["m_isPublisher"] = true;
 		GameManager.company.adjustCash(-m_publisherCost, "Enter in Stock Exchange".dlocalize(m_idMod));
 	}
 	
-	wallStreet.completeHireTrader = function()
+	wallStreet.gainHype = function()
 	{
-		m_storedDatas.data["m_haveTrader"] = true;
-		GameManager.company.adjustCash(-m_hireCost, "Hire Trader".dlocalize(m_idMod));	
+		if (GameManager.company.isGameProgressBetween(0.2, 0.9))	// Game in development
+		{
+			if (GameManager.company.getRandom() <= 0.25)	// 25% chance to win a bonus
+			{
+				GameManager.company.adjustHype(5 + 50 * company.getRandom());	//increase hype between 5 and 55.
+				
+				// Select a notification and display it
+				wallStreet.getAWinHypeNotification();
+			}
+		}
+	}
+	
+	wallStreet.loseHype = function()
+	{
+		if (GameManager.company.isGameProgressBetween(0.2, 0.9))	// Game in development
+		{
+			if (GameManager.company.getRandom() <= 0.25)	// 25% chance to have a malus
+			{
+				// decrease hype between 5 and 55.
+				var lostHype = 5 + 50 * company.getRandom();
+				if (GameManager.company.hype - lostHype >= 0)
+					GameManager.company.adjustHype(-Math.floor(lostHype));
+				else
+					GameManager.company.adjustHype(-GameManager.company.hype);	
+				
+				// Select a notification and display it
+				wallStreet.getALostHypeNotification();
+			}
+		}
+	}
+	
+	//////////////////////////////////////////////////////////////////////
+	/////////////////////////// Notifications ////////////////////////////
+	//////////////////////////////////////////////////////////////////////
+	wallStreet.getAFabulousWinFansNotification = function()
+	{
+		var notif = wallStreet.selectNotifInList(listFabulousWinFans);
+				
+		GameManager.company.notifications.push(notif);
+	}
+	
+	wallStreet.getAWinFansNotification = function()
+	{
+		var notif = wallStreet.selectNotifInList(listWinFans);
+				
+		GameManager.company.notifications.push(notif);
+	}
+	
+	wallStreet.getAHugeLostFansNotification = function()
+	{
+		var notif = wallStreet.selectNotifInList(listHugeLostFans);
+				
+		GameManager.company.notifications.push(notif);
+	}
+	
+	wallStreet.getALostFansNotification = function()
+	{
+		var notif = wallStreet.selectNotifInList(listLostFans);
+				
+		GameManager.company.notifications.push(notif);
+	}
+	
+	wallStreet.getAWinFansWithLostNotification = function()
+	{
+		var notif = wallStreet.selectNotifInList(listWinsWithBadResultsFans);
+				
+		GameManager.company.notifications.push(notif);
+	}
+	
+	wallStreet.getAWinHypeNotification = function()
+	{
+		var notif = wallStreet.selectNotifInList(listGainHype);
+				
+		GameManager.company.notifications.push(notif);
+	}
+	
+	wallStreet.getALostHypeNotification = function()
+	{
+		var notif = wallStreet.selectNotifInList(listLostHype);
+				
+		GameManager.company.notifications.push(notif);
+	}
+	
+	wallStreet.selectNotifInList = function(list)
+	{
+		if (!list)
+			return undefined;
+			
+		var listNotifLenght = list.length;
+		if (listNotifLenght == 0)
+			return undefined;
+			
+		var probEachNotif = 1/listNotifLenght;
+		var prob = probEachNotif;
+		var cumulatedProb = new Array();
+		for (var i = 0 ; i < listNotifLenght ; i += 1)
+		{
+			cumulatedProb.push(prob);
+			prob += probEachNotif;
+		}
+		
+		var randomProb = GameManager.company.getRandom();
+		var index;
+		for (var i = 0 ; i < listNotifLenght ; i += 1)
+		{
+			if (randomProb > cumulatedProb[i])
+				continue;
+			else
+			{
+				index = i;
+				break;
+			}
+		}
+		
+		var notif = new Notification(
+									{
+										header: list[index][0],
+										text: list[index][1]
+									});
+		
+		return notif;
+	}
+	
+	wallStreet.initNotificationsLists = function()
+	{
+		// TODO init lists (with .dlocalize(m_idMod))
+		// ex : var items = [[1,2],[3,4],[5,6]];
+		
+		// Init list of notifications [header, text]
+		listWinFans = [
+						// TODO
+						];
+						
+		listFabulousWinFans = [
+								// TODO
+								];
+						
+		listLostFans = [
+						// TODO
+						];
+						
+		listHugeLostFans = [
+							// TODO
+							];
+						
+		listWinsWithBadResultsFans = [
+										// TODO
+										];
+						
+		listGainHype = [
+						// TODO
+						];
+						
+		listLostHype = [
+						// TODO
+						];
 	}
 	
 	//////////////////////////////////////////////////////////////////////
@@ -966,10 +1157,70 @@ function inArrayElementWithId(id, array)
 																}
 									};
 		
-		// achievement to add :
-		// Maybe achievement win a certain amount of money in one time
-		// train trader
-		// fire the trader
+		Achievements.becomePublisher = 	{
+										id: "27E5f6ED-BB12-473C-8C3B-FA86FD0838C1",
+										title: "Publisher !".dlocalize(m_idMod),
+										description: "Become an independent Publisher and enter in stock exchange.".dlocalize(m_idMod),
+										tint: "#FFFF00",
+										value: 10,
+										hidden: true,
+										canEarnMultiple: false,
+										isAchieved: function () {
+																	return m_storedDatas.data["m_isPublisher"];
+																}
+									};
+		
+		Achievements.theGoodDeal = 	{
+										id: "67E0B844-37EF-4813-9E6B-32FD05931A66",
+										title: "First Deal !".dlocalize(m_idMod),
+										description: "Make your first good deal with your Trader.".dlocalize(m_idMod),
+										tint: "#FFFF00",
+										value: 10,
+										hidden: true,
+										canEarnMultiple: false,
+										isAchieved: function () {
+																	return m_storedDatas.data["m_bestDeal"] > 0;
+																}
+									};
+		
+		Achievements.theGoodDeal = 	{
+										id: "766160F8-D92C-4745-AA17-4FDE107BD9A0",
+										title: "The Good Deal !".dlocalize(m_idMod),
+										description: "Make, with Trader's speculations, in one time, a benefit of 100M.".dlocalize(m_idMod),
+										tint: "#FFFF00",
+										value: 10,
+										hidden: true,
+										canEarnMultiple: false,
+										isAchieved: function () {
+																	return m_storedDatas.data["m_bestDeal"] >= 100000000;
+																}
+									};
+		
+		Achievements.trainingTrader = 	{
+										id: "F6E40A3D-2EB7-4206-855F-E75D8E4EFF0C",
+										title: "Train Trader !".dlocalize(m_idMod),
+										description: "Train your Trader for the first time.".dlocalize(m_idMod),
+										tint: "#FFFF00",
+										value: 10,
+										hidden: true,
+										canEarnMultiple: false,
+										isAchieved: function () {
+																	return m_storedDatas.data["m_traderLevel"] >= 1;
+																}
+									};
+		
+		Achievements.trainHard = 	{
+										id: "83D55EA7-8E92-4F14-B5A8-05883CFD8F27",
+										title: "Train Hard".dlocalize(m_idMod),
+										description: "Reach the maximum training level with your Trader.".dlocalize(m_idMod),
+										tint: "#FFFF00",
+										value: 10,
+										hidden: true,
+										canEarnMultiple: false,
+										isAchieved: function () {
+																	return m_storedDatas.data["m_traderLevel"] >= 10;
+																}
+									};
 	}
 	
 	//////////////////////////////////////////////////////////////////////
@@ -987,10 +1238,12 @@ function inArrayElementWithId(id, array)
 		wallStreet.initResearch();
 		// Init all events of the mod
 		wallStreet.initEvents();
-		// Change behaviour of context menu according to the mod, (keep base behaviour)
-		wallStreet.customContextMenuBehaviour();
 		// Init achievements linked to the mod
 		wallStreet.initAchievements();
+		// Init lists of notifications used by the mod
+		wallStreet.initNotificationsLists();
+		// Change behaviour of context menu according to the mod, (keep base behaviour)
+		wallStreet.customContextMenuBehaviour();
 		
 		wallStreet.initPopup();
 	};
