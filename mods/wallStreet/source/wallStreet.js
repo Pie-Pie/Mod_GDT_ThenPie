@@ -46,13 +46,14 @@ function inArrayElementWithId(id, array)
 	var m_idMod = "wallStreet";
 	var m_storedDatas;	// Datas used by the mod
 		// Trader
-	var m_hireCost = 100000;
+	var m_hireCost = 100000;	// 100K
 		// Publisher
-	var m_ceilingPublisher = 500000000;
-	var m_publisherCost = 200000000;
+	var m_ceilingPublisher = 500000000;	// 500M
+	var m_publisherCost = 200000000;	// 200M
 		// Publisher Events
-	var m_rockyStarContractCost = 100000;
-	var m_rockyStarContractResearchPoint = 20;
+			// Ouccoulus RV
+	var m_ouccoulusRepurchaseCost = 500000000;	// 500M
+	var m_ouccoulusRepurchaseBenefit = 3500000;	// 3.5M
 	
 		// List of notifications
 	var listWinFans;
@@ -72,21 +73,12 @@ function inArrayElementWithId(id, array)
 		if(!m_storedDatas)
 			m_storedDatas = GDT.getDataStore(m_idMod);
 
-			
+		// General
 		if (!m_storedDatas.data["m_haveTrader"])
 			m_storedDatas.data["m_haveTrader"] = false;
 			
 		if (!m_storedDatas.data["m_isPublisher"])
 			m_storedDatas.data["m_isPublisher"] = false;
-		
-		if (!m_storedDatas.data["m_monthCashCost"])
-			m_storedDatas.data["m_monthCashCost"] = 0;
-			
-		if (!m_storedDatas.data["m_monthResearchPointWin"])
-			m_storedDatas.data["m_monthResearchPointWin"] = 0;
-		
-		if (!m_storedDatas.data["m_traderSalary"])
-			m_storedDatas.data["m_traderSalary"] = 35000;
 			
 		if (!m_storedDatas.data["m_traderLevel"])
 			m_storedDatas.data["m_traderLevel"] = 0;
@@ -99,18 +91,41 @@ function inArrayElementWithId(id, array)
 			
 		if (!m_storedDatas.data["m_traderResearchLevel"])
 			m_storedDatas.data["m_traderResearchLevel"] = 0;
+		
+		// Cash updates
+		if (!m_storedDatas.data["m_monthCashCost"])
+			m_storedDatas.data["m_monthCashCost"] = 0;
 			
+		if (!m_storedDatas.data["m_monthCashEarn"])
+			m_storedDatas.data["m_monthCashEarn"] = 0;
+			
+		if (!m_storedDatas.data["m_traderSalary"])
+			m_storedDatas.data["m_traderSalary"] = 35000;
+		
+		// Research update
+		if (!m_storedDatas.data["m_monthResearchPointWin"])
+			m_storedDatas.data["m_monthResearchPointWin"] = 0;
+		
+		// Trading
 		if (!m_storedDatas.data["m_gainMoney"])
 			m_storedDatas.data["m_gainMoney"] = 0;
 			
 		if (!m_storedDatas.data["m_bestDeal"])
 			m_storedDatas.data["m_bestDeal"] = 0;
 			
+		// Publisher Events
 		if (!m_storedDatas.data["m_dateBecomePublisher"])
 			m_storedDatas.data["m_dateBecomePublisher"] = null;
 			
 		if (!m_storedDatas.data["m_publisherEventsDate"])
 			m_storedDatas.data["m_publisherEventsDate"] = new Array();
+			
+			// Rockystar
+		if (!m_storedDatas.data["m_rockyStarContractCost"])
+			m_storedDatas.data["m_rockyStarContractCost"] = 100000;
+			
+		if (!m_storedDatas.data["m_rockyStarContractResearchPoint"])
+			m_storedDatas.data["m_rockyStarContractResearchPoint"] = 20;
 			
 		// First init for the budget label and slider
 		$("#budgetSlider").slider("value", m_storedDatas.data["m_traderBudget"]);
@@ -196,8 +211,8 @@ function inArrayElementWithId(id, array)
 		eventDate = wallStreet.add(m_storedDatas.data["m_dateBecomePublisher"], 0, 5);
 		m_storedDatas.data["m_publisherEventsDate"].push(eventDate);
 		
-		/*eventDate = wallStreet.add(m_storedDatas.data["m_dateBecomePublisher"], 0, 8);
-		m_storedDatas.data["m_publisherEventsDate"].push(eventDate);*/
+		eventDate = wallStreet.add(m_storedDatas.data["m_dateBecomePublisher"], 1, 2);
+		m_storedDatas.data["m_publisherEventsDate"].push(eventDate);
 	}
 	
 	//////////////////////////////////////////////////////////////////////
@@ -210,10 +225,15 @@ function inArrayElementWithId(id, array)
 		if (week %4 == 0)
 		{
 			// Cash update
+				// -
 			if (m_storedDatas.data["m_monthCashCost"] != 0)
 				GameManager.company.adjustCash(-m_storedDatas.data["m_monthCashCost"], "Cost Contracts".dlocalize(m_idMod));
 				
 			wallStreet.traderSalaryLevy();
+			
+				// +
+			if (m_storedDatas.data["m_monthCashEarn"] != 0)
+				GameManager.company.adjustCash(m_storedDatas.data["m_monthCashEarn"], "Various Benefits".dlocalize(m_idMod));
 			
 			// Research points
 			GameManager.company.researchPoints += m_storedDatas.data["m_monthResearchPointWin"];
@@ -645,7 +665,6 @@ function inArrayElementWithId(id, array)
 	
 	wallStreet.showManagePopup = function()
 	{
-		//if (UI.isModalContentOpen()) return;
 		UI.showModalContent("#managePopup",
 		{
 			onOpen: function()
@@ -953,7 +972,7 @@ function inArrayElementWithId(id, array)
 										{
 											sourceId: "04C4BCCD-6E01-477B-8121-0D32D637AD99",
 											header: "Research Contract".dlocalize(m_idMod),
-											text: "The famous Publisher and Developer RockyStar want to establish a contract with you company.\n\nThe main goal of this contract is to share resources to generate Research Points every month in return of ".dlocalize(m_idMod) + (m_rockyStarContractCost/1000).toString() + "K Cash a month.{n}Do you want to sign this contract ?".dlocalize(m_idMod),
+											text: "The famous Publisher and Developer RockyStar want to establish a contract with you company.\n\nThe main goal of this contract is to share resources to generate Research Points every month in return of ".dlocalize(m_idMod) + (m_storedDatas.data["m_rockyStarContractCost"]/1000).toString() + "K Cash a month.{n}Do you want to sign this contract ?".dlocalize(m_idMod),
 											options: ["Yes".dlocalize(m_idMod), "No".dlocalize(m_idMod)]
 										});
 			},
@@ -963,13 +982,13 @@ function inArrayElementWithId(id, array)
 				if(result != 0) // Case not answer Yes
 				{
 					m_storedDatas.data["m_publisherEventsDate"][0] = wallStreet.add(m_storedDatas.data["m_publisherEventsDate"][0], 2, 5);
-					m_rockyStarContractCost -= 25000;
-					m_rockyStarContractResearchPoint *= 2;
+					m_storedDatas.data["m_rockyStarContractCost"] -= 25000;
+					m_storedDatas.data["m_rockyStarContractResearchPoint"] *= 2;
 					return;
 				}
 				
-				m_storedDatas.data["m_monthCashCost"] += m_rockyStarContractCost;
-				m_storedDatas.data["m_monthResearchPointWin"] = m_rockyStarContractResearchPoint;
+				m_storedDatas.data["m_monthCashCost"] += m_storedDatas.data["m_rockyStarContractCost"];
+				m_storedDatas.data["m_monthResearchPointWin"] = m_storedDatas.data["m_rockyStarContractResearchPoint"];
 				
 				var notif = new Notification(
 											{
@@ -981,6 +1000,45 @@ function inArrayElementWithId(id, array)
 			}
 		};
 		GDT.addEvent(wallStreet.contractRockyStars);
+		
+		wallStreet.repurchaseOuccoulusRV = 
+		{
+			id: "C617D51B-E2A7-4703-9F28-9206332D43BB",
+			maxTriggers: 1,
+			trigger: function()
+			{
+				return m_storedDatas.data["m_isPublisher"] && GameManager.company.cash >= m_ouccoulusRepurchaseCost && !wallStreet.dateIsLater(m_storedDatas.data["m_publisherEventsDate"][1]);
+			},
+			
+			getNotification: function()
+			{
+				return new Notification(
+										{
+											sourceId: "C617D51B-E2A7-4703-9F28-9206332D43BB",
+											header: "Repurchase Offer".dlocalize(m_idMod),
+											text: "The current situation allows your company to redeem the recent SME Ouccoulus RV.\n\nThis acquisition is a significant investment but could generate monthly income.\nSuch an opportunity will not be available twice!{n}Do you want to redeem this company?\n\nCost : ".dlocalize(m_idMod) + (m_ouccoulusRepurchaseCost/1000000).toString() + " M".dlocalize(m_idMod),
+											options: ["Yes".dlocalize(m_idMod), "No".dlocalize(m_idMod)]
+										});
+			},
+			
+			complete: function(result)
+			{
+				if(result != 0) // Case not answer Yes
+					return;
+				
+				GameManager.company.adjustCash(-m_ouccoulusRepurchaseCost, "Ouccoulus RV Repurchase".dlocalize(m_idMod));
+				m_storedDatas.data["m_monthCashEarn"] += m_ouccoulusRepurchaseBenefit;
+				
+				var notif = new Notification(
+											{
+												header: "Ouccoulus RV Repurchase".dlocalize(m_idMod),
+												text: "Congratulations!\nYou have successfully repurchase the Ouccoulus RV company.".dlocalize(m_idMod),
+											});
+				
+				GameManager.company.notifications.push(notif);
+			}
+		};
+		GDT.addEvent(wallStreet.repurchaseOuccoulusRV);
 	}
 	
 	//////////////////////////////////////////////////////////////////////
