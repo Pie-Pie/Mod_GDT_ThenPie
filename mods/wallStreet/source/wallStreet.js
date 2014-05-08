@@ -114,6 +114,43 @@ function inArrayElementWithId(id, array)
 			
 		if (!m_storedDatas.data["m_publisherEventsDate"])
 			m_storedDatas.data["m_publisherEventsDate"] = new Array();
+			
+		// First init for the budget label and slider
+		$("#budgetSlider").slider("value", m_storedDatas.data["m_traderBudget"]);
+		
+		$("#budgetLabel").empty();
+		var budget =  m_storedDatas.data["m_traderBudget"]/1000;
+		if(budget/1000 < 1)
+			$("#budgetLabel").append("Budget: ".dlocalize(m_idMod) + m_storedDatas.data["m_traderBudget"]/1000 + "K".dlocalize(m_idMod));
+		else
+			$("#budgetLabel").append("Budget: ".dlocalize(m_idMod) + m_storedDatas.data["m_traderBudget"]/1000000 + "M".dlocalize(m_idMod));
+			
+		// First init for the risk label and slider
+		$("#riskSlider").slider("value", m_storedDatas.data["m_traderRisks"]);
+		
+		$("#riskLabel").empty();
+		switch(m_storedDatas.data["m_traderRisks"])
+		{
+			case 1:
+				$("#riskLabel").append("Risk: Noob Trader!!".dlocalize(m_idMod));
+				break;
+				
+			case 2:
+				$("#riskLabel").append("Risk: Trader to Trader.".dlocalize(m_idMod));
+				break;
+				
+			case 3:
+				$("#riskLabel").append("Risk: True Trader.".dlocalize(m_idMod));
+				break;
+				
+			case 4:
+				$("#riskLabel").append("Risk: Angry Trader!!".dlocalize(m_idMod));
+				break;
+				
+			case 5:
+				$("#riskLabel").append("Risk: Crazy Trader!!".dlocalize(m_idMod));
+				break;
+		}
 	}
 	
 	wallStreet.dateIsLater = function(date)
@@ -529,63 +566,63 @@ function inArrayElementWithId(id, array)
 	//////////////////////////////////////////////////////////////////////
 	wallStreet.initPopup = function()
 	{
-		/*var res = $("#resources");
-		res.append("<div id=\"advSpyDialog\" class=\"tallWindow windowBorder\"> <div class=\"windowTitle\">" + "Advanced Spying".dlocalize(m_idMod) + "</div><div id=\"advSpyCost\" class=\"windowCostLabel\">" + "Cost:".dlocalize(m_idMod) + " 500K</div><div class=\"centeredButtonWrapper\" style=\"margin-top: 20px\"><h2>" + "Budget".dlocalize(m_idMod) + "</h2><div id=\"advSpyBudgetSlider\">			</div></div>" + "<div class=\"centeredButtonWrapper\" style=\"margin-top: 20px\"><h2>" + "Select target".dlocalize(m_idMod) + "</h2><div id=\"advSpyTargets\" style=\"height: 280px; overflow-y: auto; margin: 5px 20px 0px 20px;\"></div></div><br />" + "<div class=\"centeredButtonWrapper okButtonWrapper\"><div id=\"advSpyButton\" class=\"okButton baseButton windowMainActionButton disabledButton windowLargeOkButton\">" + "Spy".dlocalize(m_idMod) + "</div></div></div>");
-		
-		
-		$("#advSpyBudgetSlider").empty();
-		$("#advSpyBudgetSlider").append($("<div class=\"budgetSlider\"></div>").slider(
-		{
-			orientation: "vertical",
-			min: 0,
-			max: 10,
-			value: 2,
-			animate: "fast",
-			slide: function(event, ui)
-			{
-				//alert($("#advSpyBudgetSlider").slider("value"));
-			}
-		}));
-	
-	$("#advSpyDialog").dialog(
-			{
-				draggable: false,
-				modal: true,
-				resizable: false,
-				show: "fade",
-				zIndex: 7000,
-				title: "Attention",
-				open: function()
-				{
-					
-				},
-				close: function()
-				{
-					$(this).dialog("destroy");
-					this.style.cssText = "display: none;";
-				}
-			});
-			
-		UI.closeModal();*/
 		var res = $("#resources");
-		//class=\"tallWindow windowBorder\"
-		res.append("<div id=\"managePopup\" class=\"notificationThreeOptions windowBorder\"><div class=\"windowTitle\">" + "Manage Trader".dlocalize(m_idMod) + "</div><div id=\"salarySlider\" class=\"ui-slider-range\" style=\"margin: auto; top: 20px; width: 450px;\">	<div id=\"salaryLabel\" class=\"windowCostLabel\" style=\"width: auto; top:10px;\">	</div></div></div>");
+		res.append("<div id=\"managePopup\" class=\"notificationThreeOptions windowBorder\"><div class=\"windowTitle\">" + "Manage Trader".dlocalize(m_idMod) + "</div><p style=\"margin-top: 50px;\"><div id=\"budgetSlider\" class=\"ui-slider-range\" style=\"margin: auto; top: 20px; width: 450px;\">	<div id=\"budgetLabel\" class=\"windowCostLabel\" style=\"width: auto; top:10px;\">	</div></div></p><p style=\"margin-top: 50px;\"><div id=\"riskSlider\" class=\"ui-slider-range\" style=\"margin: auto; top: 20px; width: 450px;\">	<div id=\"riskLabel\" class=\"windowCostLabel\" style=\"width: auto; top:10px;\">	</div></p></div></div>");
 		
-		$("#salaryLabel").append("Salary: " + m_salary + "K");
-		
-		$("#salarySlider").slider(
+		// Budget slider definition
+		$("#budgetSlider").slider(
 		{
 			min: 0,
-			max: 500,
-			value: 35,
-			step: 5,
-			animate: "fast",
+			max: 5000000,
+			value: 0,
+			step: 10000,
+			range: "min",
 			slide: function(event, ui)
 			{
-				$("#advSpyBudgetSlider").slider("value", ui.value);
-				m_salary = ui.value;
-				$("#salaryLabel").empty();
-				$("#salaryLabel").append("Salary: " + m_salary + "K");
+				m_storedDatas.data["m_traderBudget"] = ui.value;
+				$("#budgetLabel").empty();
+				var budget =  m_storedDatas.data["m_traderBudget"]/1000;
+				if(budget/1000 < 1)
+					$("#budgetLabel").append("Budget: ".dlocalize(m_idMod) + m_storedDatas.data["m_traderBudget"]/1000 + "K".dlocalize(m_idMod));
+				else
+					$("#budgetLabel").append("Budget: ".dlocalize(m_idMod) + m_storedDatas.data["m_traderBudget"]/1000000 + "M".dlocalize(m_idMod));
+			}
+		});
+		
+		// Risk slider definition
+		$("#riskSlider").slider(
+		{
+			min: 1,
+			max: 5,
+			value: 1,
+			step: 1,
+			range: "min",
+			slide: function(event, ui)
+			{
+				m_storedDatas.data["m_traderRisks"] = ui.value;
+				$("#riskLabel").empty();
+				switch(ui.value)
+				{
+					case 1:
+						$("#riskLabel").append("Risk: Noob Trader!!".dlocalize(m_idMod));
+						break;
+						
+					case 2:
+						$("#riskLabel").append("Risk: Trader to Trader.".dlocalize(m_idMod));
+						break;
+						
+					case 3:
+						$("#riskLabel").append("Risk: True Trader.".dlocalize(m_idMod));
+						break;
+						
+					case 4:
+						$("#riskLabel").append("Risk: Angry Trader!!".dlocalize(m_idMod));
+						break;
+						
+					case 5:
+						$("#riskLabel").append("Risk: Crazy Trader!!".dlocalize(m_idMod));
+						break;
+				}
 			}
 		});
 	}
