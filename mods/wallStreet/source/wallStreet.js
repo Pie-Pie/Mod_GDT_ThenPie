@@ -45,12 +45,16 @@ function inArrayElementWithId(id, array)
 	// Mod variables
 	var m_idMod = "wallStreet";
 	var m_storedDatas;	// Datas used by the mod
-	var m_ceilingPublisher = 1000000000;
+		// Trader
 	var m_hireCost = 100000;
+		// Publisher
+	var m_ceilingPublisher = 500000000;
 	var m_publisherCost = 200000000;
-	var m_salary = 35;
+		// Publisher Events
+	var m_rockyStarContractCost = 100000;
+	var m_rockyStarContractResearchPoint = 20;
 	
-	// List of notifications
+		// List of notifications
 	var listWinFans;
 	var listFabulousWinFans;
 	var listLostFans;
@@ -58,6 +62,9 @@ function inArrayElementWithId(id, array)
 	var listWinsWithBadResultsFans;
 	var listGainHype;
 	var listLostHype;
+	
+		// Other
+	var m_salary = 35;
 	
 	//////////////////////////////////////////////////////////////////////
 	////////////////////////// Other functions ///////////////////////////
@@ -74,7 +81,13 @@ function inArrayElementWithId(id, array)
 			
 		if (!m_storedDatas.data["m_isPublisher"])
 			m_storedDatas.data["m_isPublisher"] = false;
+		
+		if (!m_storedDatas.data["m_monthCashCost"])
+			m_storedDatas.data["m_monthCashCost"] = 0;
 			
+		if (!m_storedDatas.data["m_monthResearchPointWin"])
+			m_storedDatas.data["m_monthResearchPointWin"] = 0;
+		
 		if (!m_storedDatas.data["m_traderSalary"])
 			m_storedDatas.data["m_traderSalary"] = 35000;
 			
@@ -95,16 +108,69 @@ function inArrayElementWithId(id, array)
 			
 		if (!m_storedDatas.data["m_bestDeal"])
 			m_storedDatas.data["m_bestDeal"] = 0;
+			
+		if (!m_storedDatas.data["m_dateBecomePublisher"])
+			m_storedDatas.data["m_dateBecomePublisher"] = null;
+			
+		if (!m_storedDatas.data["m_publisherEventsDate"])
+			m_storedDatas.data["m_publisherEventsDate"] = new Array();
+	}
+	
+	wallStreet.dateIsLater = function(date)
+	{
+		var currentDate = GameManager.company.getCurrentDate();
+		
+		return currentDate.year < date.year
+				|| currentDate.year === date.year && currentDate.month < date.month
+				|| currentDate.year === date.year && currentDate.month === date.month && currentDate.week < date.week
+	}
+	
+	wallStreet.add = function(date, year, month)
+	{
+		if (date.month + month <= 12)
+			date.month += month;
+		else
+		{
+			date.month = date.month + month - 12;
+			date.year += 1;
+		}
+		
+		date.year += year;
+		
+		return date;
+	}
+	
+	wallStreet.setAfterPublisherEventsDate = function()
+	{
+		var eventDate = m_storedDatas.data["m_dateBecomePublisher"];
+		eventDate = wallStreet.add(eventDate, 0, 5);
+		m_storedDatas.data["m_publisherEventsDate"].push(eventDate);
 	}
 	
 	//////////////////////////////////////////////////////////////////////
 	///////////////////////// Trading Management /////////////////////////
 	//////////////////////////////////////////////////////////////////////
-	wallStreet.traderSalaryLevy = function()
+	wallStreet.monthlyActions = function()
 	{
 		var week = parseInt(GameManager.company.currentWeek.toString());
 		
-		if (m_storedDatas.data["m_haveTrader"] && week %4 == 0)
+		if (week %4 == 0)
+		{
+			// Cash update
+			if (m_storedDatas.data["m_monthCashCost"] != 0)
+				GameManager.company.adjustCash(-m_storedDatas.data["m_monthCashCost"], "Cost Contracts".dlocalize(m_idMod));
+				
+			wallStreet.traderSalaryLevy();
+			
+			// Research points
+			GameManager.company.researchPoints += m_storedDatas.data["m_monthResearchPointWin"];
+			VisualsManager.updatePoints();
+		}
+	}
+	
+	wallStreet.traderSalaryLevy = function()
+	{
+		if (m_storedDatas.data["m_haveTrader"])
 			GameManager.company.adjustCash(-m_storedDatas.data["m_traderSalary"], "Trader Salary".dlocalize(m_idMod));
 	}
 	
@@ -280,7 +346,7 @@ function inArrayElementWithId(id, array)
 		m_storedDatas.data["m_haveTrader"] = false;
 		m_storedDatas.data["m_traderSalary"] = 35000;
 		m_storedDatas.data["m_traderLevel"] = 0;
-		m_storedDatas.data["m_traderBudget"] = 10000;
+		m_storedDatas.data["m_traderBudget"] = 0;
 		m_storedDatas.data["m_traderRisks"] = 1;
 	}
 	
@@ -294,6 +360,8 @@ function inArrayElementWithId(id, array)
 	{
 		m_storedDatas.data["m_isPublisher"] = true;
 		GameManager.company.adjustCash(-m_publisherCost, "Enter in Stock Exchange".dlocalize(m_idMod));
+		m_storedDatas.data["m_dateBecomePublisher"] =  GameManager.company.getCurrentDate();
+		wallStreet.setAfterPublisherEventsDate();
 	}
 	
 	wallStreet.gainHype = function()
@@ -637,6 +705,9 @@ function inArrayElementWithId(id, array)
 	//////////////////////////////////////////////////////////////////////
 	////////////////////////////// Events ////////////////////////////////
 	//////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////
+	////////////////////////// General Events ////////////////////////////
+	//////////////////////////////////////////////////////////////////////
 	wallStreet.initEvents = function()
 	{
 		// Event used to indicate that the player can now Hire a Trader (dialog window)
@@ -751,7 +822,7 @@ function inArrayElementWithId(id, array)
 			
 			trigger: function()
 			{
-				return GameManager.company.cash >= m_ceilingPublisher;	// 1000M cash
+				return GameManager.company.cash >= m_ceilingPublisher;	// 500M cash
 			},
 			
 			getNotification: function()
@@ -804,6 +875,60 @@ function inArrayElementWithId(id, array)
 		};
 		GDT.addEvent(wallStreet.bePublisher);
 	};
+	
+	//////////////////////////////////////////////////////////////////////
+	////////////////////////////// Events ////////////////////////////////
+	//////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////
+	///////////////////////// Publisher Events ///////////////////////////
+	//////////////////////////////////////////////////////////////////////
+	wallStreet.initPublisherEvents = function()
+	{
+		wallStreet.contractRockyStars = 
+		{
+			id: "04C4BCCD-6E01-477B-8121-0D32D637AD99",
+			maxTriggers: 2,
+			trigger: function()
+			{
+				// We are publisher, and the event date is before current date (date is passed)
+				return m_storedDatas.data["m_isPublisher"] && !wallStreet.dateIsLater(m_storedDatas.data["m_publisherEventsDate"][0]);
+			},
+			
+			getNotification: function()
+			{
+				return new Notification(
+										{
+											sourceId: "04C4BCCD-6E01-477B-8121-0D32D637AD99",
+											header: "Research Contract".dlocalize(m_idMod),
+											text: "The famous Publisher and Developer RockyStar want to establish a contract with you company.\n\nThe main goal of this contract is to share resources to generate Research Points every month in return of ".dlocalize(m_idMod) + (m_rockyStarContractCost/1000).toString() + "K Cash a month.{n}Do you want to sign this contract ?".dlocalize(m_idMod),
+											options: ["Yes".dlocalize(m_idMod), "No".dlocalize(m_idMod)]
+										});
+			},
+			
+			complete: function(result)
+			{
+				if(result != 0) // Case not answer Yes
+				{
+					m_storedDatas.data["m_publisherEventsDate"][0] = wallStreet.add(m_storedDatas.data["m_publisherEventsDate"][0], 2, 5);
+					m_rockyStarContractCost -= 25000;
+					m_rockyStarContractResearchPoint *= 2;
+					return;
+				}
+				
+				m_storedDatas.data["m_monthCashCost"] += m_rockyStarContractCost;
+				m_storedDatas.data["m_monthResearchPointWin"] = m_rockyStarContractResearchPoint;
+				
+				var notif = new Notification(
+											{
+												header: "Research Contract".dlocalize(m_idMod),
+												text: "Congratulations!\nYou have established the contract with RockyStar.".dlocalize(m_idMod),
+											});
+				
+				GameManager.company.notifications.push(notif);
+			}
+		};
+		GDT.addEvent(wallStreet.contractRockyStars);
+	}
 	
 	//////////////////////////////////////////////////////////////////////
 	///////////////////////////// Research ///////////////////////////////
@@ -1186,7 +1311,7 @@ function inArrayElementWithId(id, array)
 																}
 									};
 	}
-	
+		
 	//////////////////////////////////////////////////////////////////////
 	/////////////////////////// Init Function ////////////////////////////
 	//////////////////////////////////////////////////////////////////////
@@ -1194,14 +1319,15 @@ function inArrayElementWithId(id, array)
 	{
 		// Event to save and load mod datas
 		GDT.on(GDT.eventKeys.saves.loading, wallStreet.loadData);
-		GDT.on(GDT.eventKeys.gameplay.weekProceeded, wallStreet.traderSalaryLevy);
+		GDT.on(GDT.eventKeys.gameplay.weekProceeded, wallStreet.monthlyActions);
 		// Trading actions
 		GDT.on(GDT.eventKeys.gameplay.weekProceeded, wallStreet.tradedActions);
-		
+
 		// Init all research of the mod
 		wallStreet.initResearch();
 		// Init all events of the mod
 		wallStreet.initEvents();
+		wallStreet.initPublisherEvents();
 		// Init achievements linked to the mod
 		wallStreet.initAchievements();
 		// Init lists of notifications used by the mod
@@ -1213,3 +1339,12 @@ function inArrayElementWithId(id, array)
 	};
 	
 })();
+
+//GameManager.company.adjustCash(3*m_ceilingPublisher, "test purpose");
+// Maybe Useful functions
+//GameManager.company.getCurrentDate()
+/*GameManager.update();
+GameManager.executeWorkItems();
+GameManager.updateFeatures();
+GameManager.updateGameProgress();
+GameManager.updateCurrentHypePoints();*/
