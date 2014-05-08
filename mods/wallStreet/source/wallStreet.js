@@ -63,9 +63,6 @@ function inArrayElementWithId(id, array)
 	var listGainHype;
 	var listLostHype;
 	
-		// Other
-	var m_salary = 35;
-	
 	//////////////////////////////////////////////////////////////////////
 	////////////////////////// Other functions ///////////////////////////
 	//////////////////////////////////////////////////////////////////////
@@ -155,33 +152,52 @@ function inArrayElementWithId(id, array)
 	
 	wallStreet.dateIsLater = function(date)
 	{
+		var dates = date.split('/');
+		var dateYear = parseInt(dates[0]);
+		var dateMonth = parseInt(dates[1]);
+		var dateWeek = parseInt(dates[2]);
+		
 		var currentDate = GameManager.company.getCurrentDate();
 		
-		return currentDate.year < date.year
-				|| currentDate.year === date.year && currentDate.month < date.month
-				|| currentDate.year === date.year && currentDate.month === date.month && currentDate.week < date.week
+		return currentDate.year < dateYear
+				|| currentDate.year === dateYear && currentDate.month < dateMonth
+				|| currentDate.year === dateYear && currentDate.month === dateMonth && currentDate.week < dateWeek;
+	}
+	
+	wallStreet.getStringDate = function(date)
+	{
+		return date.year + "/" + date.month + "/" + date.week;
 	}
 	
 	wallStreet.add = function(date, year, month)
 	{
-		if (date.month + month <= 12)
-			date.month += month;
+		var dates = date.split('/');
+
+		var dateYear = parseInt(dates[0]);
+		var dateMonth = parseInt(dates[1]);
+		
+		if (dateMonth + month <= 12)
+			dateMonth += month;
 		else
 		{
-			date.month = date.month + month - 12;
-			date.year += 1;
+			dateMonth = dateMonth + month - 12;
+			dateYear += 1;
 		}
 		
-		date.year += year;
+		dateYear += year;
 		
-		return date;
+		return dateYear + "/" + dateMonth + "/" + dates[2];
 	}
 	
 	wallStreet.setAfterPublisherEventsDate = function()
 	{
-		var eventDate = m_storedDatas.data["m_dateBecomePublisher"];
-		eventDate = wallStreet.add(eventDate, 0, 5);
+		var eventDate;
+		
+		eventDate = wallStreet.add(m_storedDatas.data["m_dateBecomePublisher"], 0, 5);
 		m_storedDatas.data["m_publisherEventsDate"].push(eventDate);
+		
+		/*eventDate = wallStreet.add(m_storedDatas.data["m_dateBecomePublisher"], 0, 8);
+		m_storedDatas.data["m_publisherEventsDate"].push(eventDate);*/
 	}
 	
 	//////////////////////////////////////////////////////////////////////
@@ -397,7 +413,7 @@ function inArrayElementWithId(id, array)
 	{
 		m_storedDatas.data["m_isPublisher"] = true;
 		GameManager.company.adjustCash(-m_publisherCost, "Enter in Stock Exchange".dlocalize(m_idMod));
-		m_storedDatas.data["m_dateBecomePublisher"] =  GameManager.company.getCurrentDate();
+		m_storedDatas.data["m_dateBecomePublisher"] = wallStreet.getStringDate( GameManager.company.getCurrentDate() );
 		wallStreet.setAfterPublisherEventsDate();
 	}
 	
