@@ -126,43 +126,6 @@ function inArrayElementWithId(id, array)
 			
 		if (!m_storedDatas.data["m_rockyStarContractResearchPoint"])
 			m_storedDatas.data["m_rockyStarContractResearchPoint"] = 20;
-			
-		// First init for the budget label and slider
-		$("#budgetSlider").slider("value", m_storedDatas.data["m_traderBudget"]);
-		
-		$("#budgetLabel").empty();
-		var budget =  m_storedDatas.data["m_traderBudget"]/1000;
-		if(budget/1000 < 1)
-			$("#budgetLabel").append("Budget: ".dlocalize(m_idMod) + m_storedDatas.data["m_traderBudget"]/1000 + "K".dlocalize(m_idMod));
-		else
-			$("#budgetLabel").append("Budget: ".dlocalize(m_idMod) + m_storedDatas.data["m_traderBudget"]/1000000 + "M".dlocalize(m_idMod));
-			
-		// First init for the risk label and slider
-		$("#riskSlider").slider("value", m_storedDatas.data["m_traderRisks"]);
-		
-		$("#riskLabel").empty();
-		switch(m_storedDatas.data["m_traderRisks"])
-		{
-			case 1:
-				$("#riskLabel").append("Risk: Noob Trader!!".dlocalize(m_idMod));
-				break;
-				
-			case 2:
-				$("#riskLabel").append("Risk: Trader to Trader.".dlocalize(m_idMod));
-				break;
-				
-			case 3:
-				$("#riskLabel").append("Risk: True Trader.".dlocalize(m_idMod));
-				break;
-				
-			case 4:
-				$("#riskLabel").append("Risk: Angry Trader!!".dlocalize(m_idMod));
-				break;
-				
-			case 5:
-				$("#riskLabel").append("Risk: Crazy Trader!!".dlocalize(m_idMod));
-				break;
-		}
 	}
 	
 	wallStreet.dateIsLater = function(date)
@@ -603,10 +566,46 @@ function inArrayElementWithId(id, array)
 	wallStreet.initPopup = function()
 	{
 		var res = $("#resources");
-		res.append("<div id=\"managePopup\" class=\"notificationThreeOptions windowBorder\"><div class=\"windowTitle\">" + "Manage Trader".dlocalize(m_idMod) + "</div><p style=\"margin-top: 10px;\"><div id=\"budgetSlider\" class=\"ui-slider-range budgetSlider\" style=\"margin: auto; top: 20px; width: 450px;\">	<div id=\"budgetLabel\" class=\"windowCostLabel\" style=\"width: auto; top: 50px;\">	</div></div></p><p style=\"margin-top: 80px;\"><div id=\"riskSlider\" class=\"ui-slider-range budgetSlider\" style=\"margin: auto; margin-top: 20px; top: 20px; width: 450px;\">	<div id=\"riskLabel\" class=\"windowCostLabel\" style=\"width: auto; top: 50px;\">	</div></div></p><div style=\"margin-top: 100px;\"><div id=\"trainButton\" class=\"baseButton orangeButton\" style=\"margin: auto; margin-top: 10px;\">" + "Train".dlocalize(m_idMod) + "</div><div id=\"closeButton\" class=\"baseButton orangeButton\" style=\"margin: auto; margin-top: 20px;\">" + "Close".dlocalize(m_idMod) + "</div></div></div>");
-		
-		// Budget slider definition
-		$("#budgetSlider").slider(
+		res.append("<div id=\"managePopup\" class=\"notificationThreeOptions windowBorder\"><div class=\"windowTitle\">" + "Manage Trader".dlocalize(m_idMod) + "</div><p style=\"margin-top: 10px;\"><div id=\"sliderBudget\" class=\"ui-slider-range budgetSlider\" style=\"margin: auto; top: 20px; width: 450px;\">	<div id=\"budgetLabel\" class=\"windowCostLabel\" style=\"width: auto; top: 50px;\">	</div></div></p><p style=\"margin-top: 80px;\"><div id=\"riskSlider\" class=\"ui-slider-range budgetSlider\" style=\"margin: auto; margin-top: 20px; top: 20px; width: 450px;\">	<div id=\"riskLabel\" class=\"windowCostLabel\" style=\"width: auto; top: 50px;\">	</div></div></p><div style=\"margin-top: 150px;\"><div id=\"trainButton\" class=\"baseButton orangeButton\" style=\"margin: auto; margin-top: 10px;\">" + "Train".dlocalize(m_idMod) + "</div></div>");
+			
+		$("#trainButton").clickExcl(
+			function()
+			{
+				if(!$("#trainButton").hasClass("disabledButton"))
+				{
+					Sound.click();
+					$("#trainButton").removeClass("orangeButton").addClass("disabledButton");
+					
+					var weekToTrain = 1 + m_storedDatas.data["m_traderLevel"] * m_storedDatas.data["m_traderLevel"];
+					var costToTrain = 1000 * m_storedDatas.data["m_traderLevel"] + m_storedDatas.data["m_traderLevel"] * 100;
+					
+					var monthToTrain = 0;
+					var yearToTrain = 0;
+					if(weekToTrain > 4)
+					{
+						monthToTrain = weekToTrain / 4;
+						weekToTrain -= monthToTrain * 4;
+						
+						if(monthToTrain > 12)
+						{
+							yearToTrain = monthToTrain / 12;
+							monthToTrain -= yearToTrain * 12;
+						}
+					}
+					
+					var currentDate = GameManager.company.getCurrentDate();
+					var dateToTrain = currentDate;
+					dateToTrain.year += yearToTrain;
+					dateToTrain.month += monthToTrain;
+					dateToTrain.week += weekToTrain;
+				}
+			});
+	}
+	
+	wallStreet.defInitSlider = function()
+	{
+		//budget slider definition
+		$("#sliderBudget").slider(
 		{
 			min: 0,
 			max: 5000000,
@@ -624,7 +623,7 @@ function inArrayElementWithId(id, array)
 					$("#budgetLabel").append("Budget: ".dlocalize(m_idMod) + m_storedDatas.data["m_traderBudget"]/1000000 + "M".dlocalize(m_idMod));
 			}
 		});
-		
+
 		// Risk slider definition
 		$("#riskSlider").slider(
 		{
@@ -661,22 +660,65 @@ function inArrayElementWithId(id, array)
 				}
 			}
 		});
+		
+		// First init for the budget label and slider
+		$("#sliderBudget").slider("value", m_storedDatas.data["m_traderBudget"]);
+		
+		$("#budgetLabel").empty();
+		var budget =  m_storedDatas.data["m_traderBudget"]/1000;
+		if(budget/1000 < 1)
+			$("#budgetLabel").append("Budget: ".dlocalize(m_idMod) + m_storedDatas.data["m_traderBudget"]/1000 + "K".dlocalize(m_idMod));
+		else
+			$("#budgetLabel").append("Budget: ".dlocalize(m_idMod) + m_storedDatas.data["m_traderBudget"]/1000000 + "M".dlocalize(m_idMod));
+			
+		// First init for the risk label and slider
+		$("#riskSlider").slider("value", m_storedDatas.data["m_traderRisks"]);
+		
+		$("#riskLabel").empty();
+		switch(m_storedDatas.data["m_traderRisks"])
+		{
+			case 1:
+				$("#riskLabel").append("Risk: Noob Trader!!".dlocalize(m_idMod));
+				break;
+				
+			case 2:
+				$("#riskLabel").append("Risk: Trader to Trader.".dlocalize(m_idMod));
+				break;
+				
+			case 3:
+				$("#riskLabel").append("Risk: True Trader.".dlocalize(m_idMod));
+				break;
+				
+			case 4:
+				$("#riskLabel").append("Risk: Angry Trader!!".dlocalize(m_idMod));
+				break;
+				
+			case 5:
+				$("#riskLabel").append("Risk: Crazy Trader!!".dlocalize(m_idMod));
+				break;
+		}
 	}
 	
 	wallStreet.showManagePopup = function()
 	{
+		if (UI.isModalContentOpen()) return;
+		
 		UI.showModalContent("#managePopup",
 		{
+			close: true,
 			onOpen: function()
 			{	
-				
+				wallStreet.defInitSlider();
 			},
 			onClose: function()
 			{
 				GameManager.resume(true);
+				
+				$("#sliderBudget").slider("destroy");
+				$("#riskSlider").slider("destroy");
 			}
 		});
-	};
+	}
 	
 	wallStreet.customContextMenuBehaviour = function()
 	{
@@ -735,7 +777,6 @@ function inArrayElementWithId(id, array)
 							{
 								Sound.click();
 								wallStreet.showManagePopup();
-								//GameManager.resume(true);
 							}
 						};
 						
