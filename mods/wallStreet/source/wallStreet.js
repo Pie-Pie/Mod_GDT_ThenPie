@@ -126,6 +126,9 @@ function inArrayElementWithId(id, array)
 			
 		if (!m_storedDatas.data["m_rockyStarContractResearchPoint"])
 			m_storedDatas.data["m_rockyStarContractResearchPoint"] = 20;
+			
+		if (!m_storedDatas.data["m_dateFinishTraining"])
+			m_storedDatas.data["m_dateFinishTraining"] = null;
 	}
 	
 	wallStreet.dateIsLater = function(date)
@@ -212,9 +215,9 @@ function inArrayElementWithId(id, array)
 	
 	wallStreet.tradedActions = function()
 	{
-		if (m_storedDatas.data["m_traderBudget"] == 0)
+		if (m_storedDatas.data["m_traderBudget"] == 0 || m_storedDatas.data["m_dateFinishTraining"] == null)
 			return;
-			
+		
 		var week = parseInt(GameManager.company.currentWeek.toString());
 		
 		if (m_storedDatas.data["m_haveTrader"] && week %2 == 0)
@@ -384,6 +387,7 @@ function inArrayElementWithId(id, array)
 		m_storedDatas.data["m_traderLevel"] = 0;
 		m_storedDatas.data["m_traderBudget"] = 0;
 		m_storedDatas.data["m_traderRisks"] = 1;
+		m_storedDatas.data["m_dateFinishTraining"] = null;
 	}
 	
 	wallStreet.completeHireTrader = function()
@@ -570,25 +574,26 @@ function inArrayElementWithId(id, array)
 			
 		$("#trainButton").clickExcl(
 			function()
-			{
+			{		
 				if(!$("#trainButton").hasClass("disabledButton"))
 				{
 					Sound.click();
 					$("#trainButton").removeClass("orangeButton").addClass("disabledButton");
 					
+					//DEPLACER !!!!
 					var weekToTrain = 1 + m_storedDatas.data["m_traderLevel"] * m_storedDatas.data["m_traderLevel"];
-					var costToTrain = 1000 * m_storedDatas.data["m_traderLevel"] + m_storedDatas.data["m_traderLevel"] * 100;
+					var costToTrain = 1000000 * m_storedDatas.data["m_traderLevel"] * m_storedDatas.data["m_traderLevel"] + 1000000;
 					
 					var monthToTrain = 0;
 					var yearToTrain = 0;
 					if(weekToTrain > 4)
 					{
-						monthToTrain = weekToTrain / 4;
+						monthToTrain = parseInt(weekToTrain / 4, 10);
 						weekToTrain -= monthToTrain * 4;
 						
 						if(monthToTrain > 12)
 						{
-							yearToTrain = monthToTrain / 12;
+							yearToTrain = parseInt(monthToTrain / 12, 10);
 							monthToTrain -= yearToTrain * 12;
 						}
 					}
@@ -709,11 +714,14 @@ function inArrayElementWithId(id, array)
 			onOpen: function()
 			{	
 				wallStreet.defInitSlider();
+				
+				if(m_storedDatas.data["m_dateFinishTraining"])
+					$("#trainButton").removeClass("orangeButton").addClass("disabledButton");
 			},
 			onClose: function()
 			{
 				GameManager.resume(true);
-				
+			
 				$("#sliderBudget").slider("destroy");
 				$("#riskSlider").slider("destroy");
 			}
