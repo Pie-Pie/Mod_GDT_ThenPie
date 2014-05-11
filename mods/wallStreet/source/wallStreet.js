@@ -131,8 +131,11 @@ function inArrayElementWithId(id, array)
 			m_storedDatas.data["m_dateFinishTraining"] = null;
 	}
 	
-	wallStreet.dateIsLater = function(date)
+	wallStreet.currentDateIsLater = function(date)
 	{
+		if (date == null)
+			return true;
+			
 		var dates = date.split('/');
 		var dateYear = parseInt(dates[0]);
 		var dateMonth = parseInt(dates[1]);
@@ -150,34 +153,67 @@ function inArrayElementWithId(id, array)
 		return date.year + "/" + date.month + "/" + date.week;
 	}
 	
-	wallStreet.add = function(date, year, month)
+	wallStreet.addWeeksToDate = function(date, nbWeeksNeeded)
+	{
+		var newDate = wallStreet.getDateFromString(date);
+		
+		var newMonth = 0;
+		var newYear = 0;
+		if(nbWeeksNeeded > 4)
+		{
+			newMonth = parseInt(nbWeeksNeeded / 4, 10);
+			nbWeeksNeeded -= newMonth * 4;
+			
+			if(newMonth > 12)
+			{
+				newYear = parseInt(newMonth / 12, 10);
+				newMonth -= newYear * 12;
+			}
+		}
+		
+		newDate.week += nbWeeksNeeded;
+		if (newDate.week > 4)
+		{
+			newDate.week -= 4;
+			newMonth += 1;
+		}
+		
+		newDate.month += newMonth;
+		if (newDate.month > 12)
+		{
+			newDate.month -= 12;
+			newYear += 1;
+		}
+		
+		newDate.year += newYear;
+		
+		return newDate;
+	}
+	
+	wallStreet.getDateFromString = function(date)
 	{
 		var dates = date.split('/');
 
 		var dateYear = parseInt(dates[0]);
 		var dateMonth = parseInt(dates[1]);
+		var dateWeek = parseInt(dates[2]);
 		
-		if (dateMonth + month <= 12)
-			dateMonth += month;
-		else
-		{
-			dateMonth = dateMonth + month - 12;
-			dateYear += 1;
-		}
+		var dateExtracted = GameManager.company.getCurrentDate();
+		dateExtracted.year = dateYear;
+		dateExtracted.month = dateMonth;
+		dateExtracted.week = dateWeek;
 		
-		dateYear += year;
-		
-		return dateYear + "/" + dateMonth + "/" + dates[2];
+		return dateExtracted;
 	}
 	
 	wallStreet.setAfterPublisherEventsDate = function()
 	{
 		var eventDate;
 		
-		eventDate = wallStreet.add(m_storedDatas.data["m_dateBecomePublisher"], 0, 5);
+		eventDate = wallStreet.getStringDate(wallStreet.addWeeksToDate(m_storedDatas.data["m_dateBecomePublisher"], 5*4));	// 5 months
 		m_storedDatas.data["m_publisherEventsDate"].push(eventDate);
 		
-		eventDate = wallStreet.add(m_storedDatas.data["m_dateBecomePublisher"], 1, 2);
+		eventDate = wallStreet.getStringDate(wallStreet.addWeeksToDate(m_storedDatas.data["m_dateBecomePublisher"], (12+2)*4));	// 1 year 2 months
 		m_storedDatas.data["m_publisherEventsDate"].push(eventDate);
 	}
 	
@@ -1012,7 +1048,7 @@ function inArrayElementWithId(id, array)
 			trigger: function()
 			{
 				// We are publisher, and the event date is before current date (date is passed)
-				return m_storedDatas.data["m_isPublisher"] && !wallStreet.dateIsLater(m_storedDatas.data["m_publisherEventsDate"][0]);
+				return m_storedDatas.data["m_isPublisher"] && !wallStreet.currentDateIsLater(m_storedDatas.data["m_publisherEventsDate"][0]);
 			},
 			
 			getNotification: function()
@@ -1030,12 +1066,13 @@ function inArrayElementWithId(id, array)
 			{
 				if(result != 0) // Case not answer Yes
 				{
-					m_storedDatas.data["m_publisherEventsDate"][0] = wallStreet.add(m_storedDatas.data["m_publisherEventsDate"][0], 2, 5);
+					m_storedDatas.data["m_publisherEventsDate"][0] = wallStreet.getStringDate(wallStreet.addWeeksToDate(m_storedDatas.data["m_publisherEventsDate"][0], (24+5)*4));	// 2 years 5 months
 					m_storedDatas.data["m_rockyStarContractCost"] -= 25000;
 					m_storedDatas.data["m_rockyStarContractResearchPoint"] *= 2;
 					return;
 				}
 				
+				m_storedDatas.data["m_publisherEventsDate"][0] = null;
 				m_storedDatas.data["m_monthCashCost"] += m_storedDatas.data["m_rockyStarContractCost"];
 				m_storedDatas.data["m_monthResearchPointWin"] = m_storedDatas.data["m_rockyStarContractResearchPoint"];
 				
@@ -1044,7 +1081,7 @@ function inArrayElementWithId(id, array)
 												header: "Research Contract".dlocalize(m_idMod),
 												text: "Congratulations!\nYou have established the contract with RockyStar.".dlocalize(m_idMod),
 											});
-				
+
 				GameManager.company.notifications.push(notif);
 			}
 		};
@@ -1056,7 +1093,7 @@ function inArrayElementWithId(id, array)
 			maxTriggers: 1,
 			trigger: function()
 			{
-				return m_storedDatas.data["m_isPublisher"] && GameManager.company.cash >= m_ouccoulusRepurchaseCost && !wallStreet.dateIsLater(m_storedDatas.data["m_publisherEventsDate"][1]);
+				return m_storedDatas.data["m_isPublisher"] && GameManager.company.cash >= m_ouccoulusRepurchaseCost && !wallStreet.currentDateIsLater(m_storedDatas.data["m_publisherEventsDate"][1]);
 			},
 			
 			getNotification: function()
@@ -1075,6 +1112,7 @@ function inArrayElementWithId(id, array)
 				if(result != 0) // Case not answer Yes
 					return;
 				
+				m_storedDatas.data["m_publisherEventsDate"][1] = null;
 				GameManager.company.adjustCash(-m_ouccoulusRepurchaseCost, "Ouccoulus RV Repurchase".dlocalize(m_idMod));
 				m_storedDatas.data["m_monthCashEarn"] += m_ouccoulusRepurchaseBenefit;
 				
