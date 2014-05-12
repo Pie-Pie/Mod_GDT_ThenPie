@@ -1268,7 +1268,7 @@ function inArrayElementWithId(id, array)
 									cost: 600000,
 									canResearch: function (company) 
 									{
-										return m_storedDatas.data["m_gainMoney"] >= 1000000 // Have gain 1M Cash with speculations
+										return m_storedDatas.data["m_gainMoney"] >= 1000000 && inArrayElementWithId("BFFCE3f6-EFF7-4208-BA0D-BA5E8C74EC97", GameManager.company.researchCompleted) != -1 // Have gain 1M Cash with speculations && Research Trading V5 Done
 									},
 									category: "Trading",
 									categoryDisplayName: "Trading".dlocalize(m_idMod),
@@ -1292,7 +1292,7 @@ function inArrayElementWithId(id, array)
 									cost: 1200000,
 									canResearch: function (company) 
 									{
-										return m_storedDatas.data["m_gainMoney"] >= 5000000 // Have gain 5M Cash with speculations MAYBE TO CHANGE
+										return m_storedDatas.data["m_gainMoney"] >= 50000000  && inArrayElementWithId("8E87EE16-F17C-4C1B-BEA9-75B431C76472", GameManager.company.researchCompleted) != -1 // Have gain 50M Cash with speculations  && Research Expert Trading Done
 									},
 									category: "Trading",
 									categoryDisplayName: "Trading".dlocalize(m_idMod),
@@ -1316,7 +1316,7 @@ function inArrayElementWithId(id, array)
 									cost: 1600000,
 									canResearch: function (company) 
 									{
-										return m_storedDatas.data["m_gainMoney"] >= 15000000 // Have gain 15M Cash with speculations MAYBE TO CHANGE
+										return m_storedDatas.data["m_gainMoney"] >= 150000000  && inArrayElementWithId("05DD056A-59C2-47D1-93F3-8EEB0FA9364D", GameManager.company.researchCompleted) != -1 // Have gain 150M Cash with speculations  && Research Master Trading Done
 									},
 									category: "Trading",
 									categoryDisplayName: "Trading".dlocalize(m_idMod),
