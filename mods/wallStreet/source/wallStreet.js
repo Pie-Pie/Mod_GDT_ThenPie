@@ -129,9 +129,14 @@ function inArrayElementWithId(id, array)
 			
 		if (!m_storedDatas.data["m_dateFinishTraining"])
 			m_storedDatas.data["m_dateFinishTraining"] = null;
+		else
+			GDT.on(GDT.eventKeys.gameplay.weekProceeded, wallStreet.checkFinishTrain);
+			
+		if (!m_storedDatas.data["m_totalWeekToTrain"])
+			m_storedDatas.data["m_totalWeekToTrain"] = 0;
 	}
 	
-	wallStreet.currentDateIsLater = function(date)
+	wallStreet.currentDateIsBefor = function(date)
 	{
 		if (date == null)
 			return true;
@@ -251,9 +256,11 @@ function inArrayElementWithId(id, array)
 	
 	wallStreet.tradedActions = function()
 	{
-		if (m_storedDatas.data["m_traderBudget"] == 0 || m_storedDatas.data["m_dateFinishTraining"] == null)
+		if (m_storedDatas.data["m_traderBudget"] == 0 || m_storedDatas.data["m_dateFinishTraining"] != null)
 			return;
-		
+			
+		alert("a que coucou");
+			
 		var week = parseInt(GameManager.company.currentWeek.toString());
 		
 		if (m_storedDatas.data["m_haveTrader"] && week %2 == 0)
@@ -473,6 +480,21 @@ function inArrayElementWithId(id, array)
 		}
 	}
 	
+	wallStreet.checkFinishTrain = function()
+	{
+		if(!wallStreet.currentDateIsBefor(wallStreet.getStringDate(m_storedDatas.data["m_dateFinishTraining"])))
+		{
+			GDT.off(GDT.eventKeys.gameplay.weekProceeded, wallStreet.checkFinishTrain);
+			m_storedDatas.data["m_traderLevel"]++;
+			m_storedDatas.data["m_dateFinishTraining"] = null;
+			var notif = new Notification(
+			{
+				header: "Finish Training".dlocalize(m_idMod),
+				text: "Congratulations!\nYour trader are now more experimented.".dlocalize(m_idMod),
+			});
+		   GameManager.company.notifications.push(notif);
+		}
+	}
 	//////////////////////////////////////////////////////////////////////
 	/////////////////////////// Notifications ////////////////////////////
 	//////////////////////////////////////////////////////////////////////
@@ -606,7 +628,7 @@ function inArrayElementWithId(id, array)
 	wallStreet.initPopup = function()
 	{
 		var res = $("#resources");
-		res.append("<div id=\"managePopup\" class=\"notificationThreeOptions windowBorder\"><div class=\"windowTitle\">" + "Manage Trader".dlocalize(m_idMod) + "</div><p style=\"margin-top: 10px;\"><div id=\"sliderBudget\" class=\"ui-slider-range budgetSlider\" style=\"margin: auto; top: 20px; width: 450px;\">	<div id=\"budgetLabel\" class=\"windowCostLabel\" style=\"width: auto; top: 50px;\">	</div></div></p><p style=\"margin-top: 80px;\"><div id=\"riskSlider\" class=\"ui-slider-range budgetSlider\" style=\"margin: auto; margin-top: 20px; top: 20px; width: 450px;\">	<div id=\"riskLabel\" class=\"windowCostLabel\" style=\"width: auto; top: 50px;\">	</div></div></p><div style=\"margin-top: 150px;\"><div id=\"trainButton\" class=\"baseButton orangeButton\" style=\"margin: auto; margin-top: 10px;\">" + "Train".dlocalize(m_idMod) + "</div></div>");
+		res.append("<div id=\"managePopup\" class=\"notificationThreeOptions windowBorder\"><div class=\"windowTitle\">" + "Manage Trader".dlocalize(m_idMod) + "</div><div style=\"margin-top: 20px;\"><div id=\"sliderBudget\" class=\"ui-slider-range budgetSlider\" style=\"margin: auto; width: 450px;\"></div><div id=\"budgetLabel\" class=\"windowCostLabel\" style=\"width: auto; margin-top: 60px;\">	</div></div><div style=\"margin-top: 70px;\"><div id=\"riskSlider\" class=\"ui-slider-range budgetSlider\" style=\"margin: auto; width: 450px;\">	</div><div id=\"riskLabel\" class=\"windowCostLabel\" style=\"width: auto; margin-top: 170px;\">	</div></div><div style=\"margin-top: 80px;\"><div id=\"trainButton\" class=\"baseButton orangeButton\" style=\"margin: auto;\">" + "Train".dlocalize(m_idMod) + "</div><div id=\"trainInfoLabel\" style=\"text-align: center; margin: auto; margin-top: 20px; font-weight: bold;\">		</div><div id=\"progressBar\" style=\"height: 30px; width: 450px; margin: auto; margin-top: 20px\"></div></div></div>");
 			
 		$("#trainButton").clickExcl(
 			function()
@@ -616,29 +638,18 @@ function inArrayElementWithId(id, array)
 					Sound.click();
 					$("#trainButton").removeClass("orangeButton").addClass("disabledButton");
 					
-					//DEPLACER !!!!
-					var weekToTrain = 1 + m_storedDatas.data["m_traderLevel"] * m_storedDatas.data["m_traderLevel"];
+					//payd the train
 					var costToTrain = 1000000 * m_storedDatas.data["m_traderLevel"] * m_storedDatas.data["m_traderLevel"] + 1000000;
+					GameManager.company.adjustCash(-costToTrain, "Training trader".dlocalize(m_idMod));
 					
-					var monthToTrain = 0;
-					var yearToTrain = 0;
-					if(weekToTrain > 4)
-					{
-						monthToTrain = parseInt(weekToTrain / 4, 10);
-						weekToTrain -= monthToTrain * 4;
-						
-						if(monthToTrain > 12)
-						{
-							yearToTrain = parseInt(monthToTrain / 12, 10);
-							monthToTrain -= yearToTrain * 12;
-						}
-					}
+					//ad the total week training for the progressbar
+					var weekToTrain = 1 + m_storedDatas.data["m_traderLevel"] * m_storedDatas.data["m_traderLevel"];
+					m_storedDatas.data["m_dateFinishTraining"] = wallStreet.addWeeksToDate(wallStreet.getStringDate(GameManager.company.getCurrentDate()), weekToTrain);
 					
-					var currentDate = GameManager.company.getCurrentDate();
-					var dateToTrain = currentDate;
-					dateToTrain.year += yearToTrain;
-					dateToTrain.month += monthToTrain;
-					dateToTrain.week += weekToTrain;
+					$("#progressBar").progressbar("value", 0);
+					
+					//add the finish event of the training
+					GDT.on(GDT.eventKeys.gameplay.weekProceeded, wallStreet.checkFinishTrain);
 				}
 			});
 	}
@@ -702,7 +713,7 @@ function inArrayElementWithId(id, array)
 			}
 		});
 		
-		// First init for the budget label and slider
+		//init for the budget label and slider
 		$("#sliderBudget").slider("value", m_storedDatas.data["m_traderBudget"]);
 		
 		$("#budgetLabel").empty();
@@ -712,7 +723,7 @@ function inArrayElementWithId(id, array)
 		else
 			$("#budgetLabel").append("Budget: ".dlocalize(m_idMod) + m_storedDatas.data["m_traderBudget"]/1000000 + "M".dlocalize(m_idMod));
 			
-		// First init for the risk label and slider
+		//init for the risk label and slider
 		$("#riskSlider").slider("value", m_storedDatas.data["m_traderRisks"]);
 		
 		$("#riskLabel").empty();
@@ -740,6 +751,49 @@ function inArrayElementWithId(id, array)
 		}
 	}
 	
+	wallStreet.defInitTrain = function()
+	{	
+		//calcul of the finish date training and the cost of this training
+		var weekToTrain = 1 + m_storedDatas.data["m_traderLevel"] * m_storedDatas.data["m_traderLevel"];
+		var costToTrain = 1000000 * m_storedDatas.data["m_traderLevel"] * m_storedDatas.data["m_traderLevel"] + 1000000;
+		
+		m_storedDatas.data["m_totalWeekToTrain"] = weekToTrain;
+		
+		//init forthe training information
+		$("#trainInfoLabel").empty();
+		var cost =  costToTrain/1000;
+		if(cost/1000 < 1)
+			$("#trainInfoLabel").append("Train Cost: ".dlocalize(m_idMod) + costToTrain/1000 + "K. Week number: ".dlocalize(m_idMod) + weekToTrain);
+		else
+			$("#trainInfoLabel").append("Train Cost: ".dlocalize(m_idMod) + costToTrain/1000000 + "M. Week number: ".dlocalize(m_idMod) + weekToTrain);
+			
+			
+		var remainingWeek = 0;
+		if(m_storedDatas.data["m_dateFinishTraining"] && wallStreet.currentDateIsBefor(wallStreet.getStringDate(m_storedDatas.data["m_dateFinishTraining"])))
+		{
+			$("#trainButton").removeClass("orangeButton").addClass("disabledButton");
+			
+			var currentDate = GameManager.company.getCurrentDate();
+			var remainingYear = m_storedDatas.data["m_dateFinishTraining"].year - currentDate.year;
+		
+			var remainingMonth = m_storedDatas.data["m_dateFinishTraining"].month - currentDate.month;
+			remainingMonth += remainingYear * 12;
+			
+			
+			remainingWeek = m_storedDatas.data["m_dateFinishTraining"].week - currentDate.week;
+			remainingWeek += remainingMonth * 4;
+		}
+		else
+			$("#trainButton").removeClass("disabledButton").addClass("orangeButton");
+		
+		var percentForProgressBar = (100 * (m_storedDatas.data["m_totalWeekToTrain"] - remainingWeek))/m_storedDatas.data["m_totalWeekToTrain"];
+		//for the progressBar
+		$("#progressBar").progressbar(
+			{
+				value: percentForProgressBar
+			});
+	}
+	
 	wallStreet.showManagePopup = function()
 	{
 		if (UI.isModalContentOpen()) return;
@@ -751,8 +805,7 @@ function inArrayElementWithId(id, array)
 			{	
 				wallStreet.defInitSlider();
 				
-				if(m_storedDatas.data["m_dateFinishTraining"])
-					$("#trainButton").removeClass("orangeButton").addClass("disabledButton");
+				wallStreet.defInitTrain();
 			},
 			onClose: function()
 			{
@@ -760,6 +813,7 @@ function inArrayElementWithId(id, array)
 			
 				$("#sliderBudget").slider("destroy");
 				$("#riskSlider").slider("destroy");
+				$("#progressBar").progressbar("destroy");
 			}
 		});
 	}
@@ -1048,7 +1102,7 @@ function inArrayElementWithId(id, array)
 			trigger: function()
 			{
 				// We are publisher, and the event date is before current date (date is passed)
-				return m_storedDatas.data["m_isPublisher"] && !wallStreet.currentDateIsLater(m_storedDatas.data["m_publisherEventsDate"][0]);
+				return m_storedDatas.data["m_isPublisher"] && !wallStreet.currentDateIsBefor(m_storedDatas.data["m_publisherEventsDate"][0]);
 			},
 			
 			getNotification: function()
@@ -1093,7 +1147,7 @@ function inArrayElementWithId(id, array)
 			maxTriggers: 1,
 			trigger: function()
 			{
-				return m_storedDatas.data["m_isPublisher"] && GameManager.company.cash >= m_ouccoulusRepurchaseCost && !wallStreet.currentDateIsLater(m_storedDatas.data["m_publisherEventsDate"][1]);
+				return m_storedDatas.data["m_isPublisher"] && GameManager.company.cash >= m_ouccoulusRepurchaseCost && !wallStreet.currentDateIsBefor(m_storedDatas.data["m_publisherEventsDate"][1]);
 			},
 			
 			getNotification: function()
