@@ -489,8 +489,8 @@ function inArrayElementWithId(id, array)
 			m_storedDatas.data["m_dateFinishTraining"] = null;
 			var notif = new Notification(
 			{
-				header: "Finish Training".dlocalize(m_idMod),
-				text: "Congratulations!\nYour trader are now more experimented.".dlocalize(m_idMod),
+				header: "Training Finished".dlocalize(m_idMod),
+				text: "Congratulations!\nYour trader are now more experimented and has less chance to lose money.".dlocalize(m_idMod),
 			});
 		   GameManager.company.notifications.push(notif);
 		}
