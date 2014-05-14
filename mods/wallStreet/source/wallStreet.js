@@ -259,8 +259,6 @@ function inArrayElementWithId(id, array)
 		if (m_storedDatas.data["m_traderBudget"] == 0 || m_storedDatas.data["m_dateFinishTraining"] != null)
 			return;
 			
-		alert("a que coucou");
-			
 		var week = parseInt(GameManager.company.currentWeek.toString());
 		
 		if (m_storedDatas.data["m_haveTrader"] && week %2 == 0)
@@ -625,6 +623,16 @@ function inArrayElementWithId(id, array)
 	//////////////////////////////////////////////////////////////////////
 	//////////////////////////////// GUI /////////////////////////////////
 	//////////////////////////////////////////////////////////////////////
+	wallStreet.getCostTraining = function()
+	{
+		return 1000000+ m_storedDatas.data["m_traderLevel"] * m_storedDatas.data["m_traderLevel"] * 500000; 
+	}
+	
+	wallStreet.getWeekTraining = function()
+	{
+		return 1 + m_storedDatas.data["m_traderLevel"] * m_storedDatas.data["m_traderLevel"];
+	}
+	
 	wallStreet.initPopup = function()
 	{
 		var res = $("#resources");
@@ -639,11 +647,11 @@ function inArrayElementWithId(id, array)
 					$("#trainButton").removeClass("orangeButton").addClass("disabledButton");
 					
 					//payd the train
-					var costToTrain = 1000000 * m_storedDatas.data["m_traderLevel"] * m_storedDatas.data["m_traderLevel"] + 1000000;
+					var costToTrain = wallStreet.getCostTraining();
 					GameManager.company.adjustCash(-costToTrain, "Training trader".dlocalize(m_idMod));
 					
 					//ad the total week training for the progressbar
-					var weekToTrain = 1 + m_storedDatas.data["m_traderLevel"] * m_storedDatas.data["m_traderLevel"];
+					var weekToTrain = wallStreet.getWeekTraining();
 					m_storedDatas.data["m_dateFinishTraining"] = wallStreet.addWeeksToDate(wallStreet.getStringDate(GameManager.company.getCurrentDate()), weekToTrain);
 					
 					$("#progressBar").progressbar("value", 0);
@@ -754,37 +762,46 @@ function inArrayElementWithId(id, array)
 	wallStreet.defInitTrain = function()
 	{	
 		//calcul of the finish date training and the cost of this training
-		var weekToTrain = 1 + m_storedDatas.data["m_traderLevel"] * m_storedDatas.data["m_traderLevel"];
-		var costToTrain = 1000000 * m_storedDatas.data["m_traderLevel"] * m_storedDatas.data["m_traderLevel"] + 1000000;
+		var costToTrain = wallStreet.getCostTraining();
+		var weekToTrain = wallStreet.getWeekTraining();
 		
 		m_storedDatas.data["m_totalWeekToTrain"] = weekToTrain;
 		
 		//init forthe training information
 		$("#trainInfoLabel").empty();
-		var cost =  costToTrain/1000;
-		if(cost/1000 < 1)
-			$("#trainInfoLabel").append("Train Cost: ".dlocalize(m_idMod) + costToTrain/1000 + "K. Week number: ".dlocalize(m_idMod) + weekToTrain);
-		else
-			$("#trainInfoLabel").append("Train Cost: ".dlocalize(m_idMod) + costToTrain/1000000 + "M. Week number: ".dlocalize(m_idMod) + weekToTrain);
-			
-			
-		var remainingWeek = 0;
-		if(m_storedDatas.data["m_dateFinishTraining"] && wallStreet.currentDateIsBefor(wallStreet.getStringDate(m_storedDatas.data["m_dateFinishTraining"])))
+		if(m_storedDatas.data["m_traderLevel"] != 11)
 		{
-			$("#trainButton").removeClass("orangeButton").addClass("disabledButton");
-			
-			var currentDate = GameManager.company.getCurrentDate();
-			var remainingYear = m_storedDatas.data["m_dateFinishTraining"].year - currentDate.year;
+			var cost =  costToTrain/1000;
+			if(cost/1000 < 1)
+				$("#trainInfoLabel").append("Train Cost: ".dlocalize(m_idMod) + parseInt(costToTrain)/1000 + "K. Week number: ".dlocalize(m_idMod) + weekToTrain);
+			else
+				$("#trainInfoLabel").append("Train Cost: ".dlocalize(m_idMod) + parseInt(costToTrain)/1000000 + "M. Week number: ".dlocalize(m_idMod) + weekToTrain);
 		
-			var remainingMonth = m_storedDatas.data["m_dateFinishTraining"].month - currentDate.month;
-			remainingMonth += remainingYear * 12;
 			
+			var remainingWeek = 0;
+			if(m_storedDatas.data["m_dateFinishTraining"] && wallStreet.currentDateIsBefor(wallStreet.getStringDate(m_storedDatas.data["m_dateFinishTraining"])))
+			{
+				$("#trainButton").removeClass("orangeButton").addClass("disabledButton");
+				
+				var currentDate = GameManager.company.getCurrentDate();
+				var remainingYear = m_storedDatas.data["m_dateFinishTraining"].year - currentDate.year;
 			
-			remainingWeek = m_storedDatas.data["m_dateFinishTraining"].week - currentDate.week;
-			remainingWeek += remainingMonth * 4;
+				var remainingMonth = m_storedDatas.data["m_dateFinishTraining"].month - currentDate.month;
+				remainingMonth += remainingYear * 12;
+				
+				
+				remainingWeek = m_storedDatas.data["m_dateFinishTraining"].week - currentDate.week;
+				remainingWeek += remainingMonth * 4;
+			}
+			else
+				$("#trainButton").removeClass("disabledButton").addClass("orangeButton");
 		}
 		else
-			$("#trainButton").removeClass("disabledButton").addClass("orangeButton");
+		{
+			$("#trainButton").removeClass("orangeButton").addClass("disabledButton");
+			$("#trainInfoLabel").append("Your trader has reached the maximum level.".dlocalize(m_idMod));
+			var remainingWeek = 0;
+		}
 		
 		var percentForProgressBar = (100 * (m_storedDatas.data["m_totalWeekToTrain"] - remainingWeek))/m_storedDatas.data["m_totalWeekToTrain"];
 		//for the progressBar
@@ -1322,7 +1339,7 @@ function inArrayElementWithId(id, array)
 									cost: 600000,
 									canResearch: function (company) 
 									{
-										return m_storedDatas.data["m_gainMoney"] >= 1000000 && inArrayElementWithId("BFFCE3f6-EFF7-4208-BA0D-BA5E8C74EC97", GameManager.company.researchCompleted) != -1 // Have gain 1M Cash with speculations && Research Trading V5 Done
+										return m_storedDatas.data["m_gainMoney"] >= 1000000 // Have gain 1M Cash with speculations
 									},
 									category: "Trading",
 									categoryDisplayName: "Trading".dlocalize(m_idMod),
@@ -1346,7 +1363,7 @@ function inArrayElementWithId(id, array)
 									cost: 1200000,
 									canResearch: function (company) 
 									{
-										return m_storedDatas.data["m_gainMoney"] >= 50000000  && inArrayElementWithId("8E87EE16-F17C-4C1B-BEA9-75B431C76472", GameManager.company.researchCompleted) != -1 // Have gain 50M Cash with speculations  && Research Expert Trading Done
+										return m_storedDatas.data["m_gainMoney"] >= 5000000 // Have gain 5M Cash with speculations MAYBE TO CHANGE
 									},
 									category: "Trading",
 									categoryDisplayName: "Trading".dlocalize(m_idMod),
@@ -1370,7 +1387,7 @@ function inArrayElementWithId(id, array)
 									cost: 1600000,
 									canResearch: function (company) 
 									{
-										return m_storedDatas.data["m_gainMoney"] >= 150000000  && inArrayElementWithId("05DD056A-59C2-47D1-93F3-8EEB0FA9364D", GameManager.company.researchCompleted) != -1 // Have gain 150M Cash with speculations  && Research Master Trading Done
+										return m_storedDatas.data["m_gainMoney"] >= 15000000 // Have gain 15M Cash with speculations MAYBE TO CHANGE
 									},
 									category: "Trading",
 									categoryDisplayName: "Trading".dlocalize(m_idMod),
